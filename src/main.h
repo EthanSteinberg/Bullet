@@ -46,6 +46,9 @@ private:
    Ogre::SceneNode *mPlayerNode;
    Ogre::Quaternion cameraQuat;
 
+   Ogre::OverlayManager *mOverlayManager;
+
+   Ogre::Overlay *mFirstOverlay;
    Ogre::Overlay *mDebugOverlay;
 
    btDiscreteDynamicsWorld *mWorld;
@@ -59,17 +62,9 @@ private:
    btRigidBody *mBoxBody;
    btRigidBody *mPlayerBody;
    btRigidBody *mGroundBody;
-   btRigidBody *mCyl1Body;
-   btRigidBody *mCyl2Body;
-   btRigidBody *mCyl3Body;
-   btRigidBody *mCyl4Body;
 
    btCollisionShape *mBoxShape;
    btCollisionShape *mPlayerShape;
    btCollisionShape *mGroundShape;
-   btCollisionShape *mCyl1Shape;
-   btCollisionShape *mCyl2Shape;
-   btCollisionShape *mCyl3Shape;
-   btCollisionShape *mCyl4Shape;
 };
 

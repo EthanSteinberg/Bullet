@@ -1,0 +1,33 @@
+// Ogre overlay scripts
+// The name of the overlay comes first
+Test
+{
+   zorder 2
+
+   container Panel(MyOverlayElements/TestPanel)
+   {
+      vert_align center
+      horz_align center
+      
+      left -.05
+      top -.05
+      width .1
+      height .1
+
+      material TextMaterial
+
+      //element TextArea(LetsSee)
+      //{
+      //   metrics_mode pixels
+      //   left 5
+      //   top 5
+      //   width 90
+      //   height 30
+      //   font_name BlueHighway
+      //   char_height 19
+	 //caption Current FPS:
+	 //colour_top 1 1 0.7
+         //colour_bottom 1 1 0.7
+      //}
+   }
+}

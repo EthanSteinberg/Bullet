@@ -104,7 +104,12 @@ bool Test::go()
    mRoot->addFrameListener(this);
 
    //Show Overlay
-   mDebugOverlay = Ogre::OverlayManager::getSingleton().getByName("Core/DebugOverlay");
+   mOverlayManager = Ogre::OverlayManager::getSingletonPtr();
+
+   mFirstOverlay = mOverlayManager->getByName("Test");
+   mFirstOverlay->show();
+
+   mDebugOverlay = mOverlayManager->getByName("Core/DebugOverlay");
    mDebugOverlay->show();
    
    //Load scene
@@ -128,7 +133,8 @@ int main()
 {
    Test test;
 
-   try{ test.go(); }
+   try{ test.go(); 
+   cout<<"Finished Running";}
    catch(Ogre::Exception& e)
    {
       cout<<"An exeption has occured: "<<e.getFullDescription().c_str()<<endl;
@@ -207,10 +213,10 @@ void Test::updateStats(void)
 
    // update stats when necessary
    try {
-      Ogre::OverlayElement* guiAvg = Ogre::OverlayManager::getSingleton().getOverlayElement("Core/AverageFps");
-      Ogre::OverlayElement* guiCurr = Ogre::OverlayManager::getSingleton().getOverlayElement("Core/CurrFps");
-      Ogre::OverlayElement* guiBest = Ogre::OverlayManager::getSingleton().getOverlayElement("Core/BestFps");
-      Ogre::OverlayElement* guiWorst = Ogre::OverlayManager::getSingleton().getOverlayElement("Core/WorstFps");
+      Ogre::OverlayElement* guiAvg = mOverlayManager->getOverlayElement("Core/AverageFps");
+      Ogre::OverlayElement* guiCurr = mOverlayManager->getOverlayElement("Core/CurrFps");
+      Ogre::OverlayElement* guiBest = mOverlayManager->getOverlayElement("Core/BestFps");
+      Ogre::OverlayElement* guiWorst = mOverlayManager->getOverlayElement("Core/WorstFps");
 
       const Ogre::RenderTarget::FrameStats& stats = mWindow->getStatistics();
       guiAvg->setCaption(avgFps + Ogre::StringConverter::toString(stats.avgFPS));
@@ -218,13 +224,13 @@ void Test::updateStats(void)
       guiBest->setCaption(bestFps + Ogre::StringConverter::toString(stats.bestFPS) +" "+Ogre::StringConverter::toString(stats.bestFrameTime)+" ms");
       guiWorst->setCaption(worstFps + Ogre::StringConverter::toString(stats.worstFPS) +" "+Ogre::StringConverter::toString(stats.worstFrameTime)+" ms");
 
-      Ogre::OverlayElement* guiTris = Ogre::OverlayManager::getSingleton().getOverlayElement("Core/NumTris");
+      Ogre::OverlayElement* guiTris = mOverlayManager->getOverlayElement("Core/NumTris");
       guiTris->setCaption(tris + Ogre::StringConverter::toString(stats.triangleCount));
 
-      Ogre::OverlayElement* guiBatches = Ogre::OverlayManager::getSingleton().getOverlayElement("Core/NumBatches");
+      Ogre::OverlayElement* guiBatches = mOverlayManager->getOverlayElement("Core/NumBatches");
       guiBatches->setCaption(batches + Ogre::StringConverter::toString(stats.batchCount));
 
-      Ogre::OverlayElement* guiDbg = Ogre::OverlayManager::getSingleton().getOverlayElement("Core/DebugText");
+      Ogre::OverlayElement* guiDbg = mOverlayManager->getOverlayElement("Core/DebugText");
       guiDbg->setCaption("Debug something here");
    }
    catch(...) { /* ignore */ }
@@ -246,22 +252,9 @@ bool Test::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
 bool Test::frameStarted(const Ogre::FrameEvent &evt)
 {
-   static int lol;
-   const btVector3 force(1,2.5,0);
-   if (mKeyboard->isKeyDown(OIS::KC_G))
-      mBoxBody->applyCentralImpulse(force); 
+   if (mKeyboard->isKeyDown(OIS::KC_T))
+      mBoxBody->applyCentralImpulse(btVector3(0,.25,.1));
    
-   btVector3 torque(1,1,1);
-   torque *= .1;
-
-   if (mKeyboard->isKeyDown(OIS::KC_N) && !(lol++%200))
-   {
-      mCyl1Body->applyTorqueImpulse(torque);   
-      //mCyl2Body->applyTorqueImpulse(torque);   
-      //mCyl3Body->applyTorqueImpulse(torque);   
-      //mCyl4Body->applyTorqueImpulse(torque);   
-   }
-
    if (mKeyboard->isKeyDown(OIS::KC_B))
       cout<<mCamera->getRealPosition().x<<' '<<mCamera->getRealPosition().z<<endl;
    
@@ -315,10 +308,10 @@ void Test::loadPhx()
    dbgdraw = new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), mWorld);
    mWorld->setDebugDrawer(dbgdraw);
 
-   Ogre::SceneNode *mBoxNode = mSceneMgr->getSceneNode("Cube");
-   
-   Ogre::Entity *mBoxEnt = mSceneMgr->getEntity("Cube");
    Ogre::Entity *mGroundEnt = mSceneMgr->getEntity("Plane");
+
+   Ogre::SceneNode *mBoxNode = mSceneMgr->getSceneNode("Cube");
+   Ogre::Entity *mBoxEnt = mSceneMgr->getEntity("Cube");
    
    //Create shape.
    BtOgre::StaticMeshToShapeConverter converter(mBoxEnt);
@@ -340,7 +333,6 @@ void Test::loadPhx()
    mWorld->addRigidBody(mBoxBody);
 
 
-
    //Create the ground shape.
    BtOgre::StaticMeshToShapeConverter converter2(mGroundEnt);
    mGroundShape = converter2.createTrimesh();
@@ -355,10 +347,10 @@ void Test::loadPhx()
    mGroundBody = new btRigidBody(mGroundRigidInfo);
    mWorld->addRigidBody(mGroundBody); 
    
-   addCylinder("Cylinder.004",mCyl1Shape,mCyl1Body,1.9,-1.5,.5);
-   addCylinder("Cylinder",mCyl2Shape,mCyl2Body,1.9,1.5,.5);
-   addCylinder("Cylinder.006",mCyl3Shape,mCyl3Body,-1.9,-1.5,-.5);
-   addCylinder("Cylinder.007",mCyl4Shape,mCyl4Body,-1.9,1.5,-.5);
+   //addCylinder("Cylinder.004",mCyl1Shape,mCyl1Body,1.9,-1.5,.5);
+   //addCylinder("Cylinder",mCyl2Shape,mCyl2Body,1.9,1.5,.5);
+   //addCylinder("Cylinder.006",mCyl3Shape,mCyl3Body,-1.9,-1.5,-.5);
+   //addCylinder("Cylinder.007",mCyl4Shape,mCyl4Body,-1.9,1.5,-.5);
 }
 
 

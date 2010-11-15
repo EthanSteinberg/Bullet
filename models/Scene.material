@@ -21,3 +21,21 @@ material Material
 		}
 	}
 }
+
+material TextMaterial
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			scene_blend alpha_blend
+			depth_check off
+
+			texture_unit
+			{
+				texture Cross.png
+			}
+		}
+	}
+}
