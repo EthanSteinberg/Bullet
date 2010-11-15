@@ -13,21 +13,24 @@
 #      Tutorial Framework
 #      http://www.ogre3d.org/tikiwiki/
 #-----------------------------------------------------------------------------
-#*/
+#*
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -Wshadow")
+set(CMAKE_BUILD_TYPE Debug)
+
 cmake_minimum_required(VERSION 2.6)
- 
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/arch)
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/lib)
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/bin)
+
 project(OgreApp)
  
 if(WIN32)
-	set(CMAKE_MODULE_PATH "$ENV{OGRE_HOME}/CMake/;${CMAKE_MODULE_PATH}")
-	set(OGRE_SAMPLES_INCLUDEPATH
-		$ENV{OGRE_HOME}/Samples/include
-	)
+	set(CMAKE_MODULE_PATH "$ENV{OGRE_HOME}/CMake/;${CMAKE_MODULE_PATH}")	
 endif(WIN32)
  
 if(UNIX)
 	set(CMAKE_MODULE_PATH "/usr/lib/OGRE/cmake/;${CMAKE_MODULE_PATH}")
-	#set(OGRE_SAMPLES_INCLUDEPATH /usr/lib/OGRE/Samples/Common/include/)
 endif(UNIX)
  
 if (CMAKE_BUILD_TYPE STREQUAL "")
@@ -45,13 +48,27 @@ find_package(OGRE REQUIRED)
 if(NOT "${OGRE_VERSION_NAME}" STREQUAL "Cthugha")
   message(SEND_ERROR "You need Ogre 1.7 Cthugha to build this.")
 endif()
- 
+
+if(NOT OGRE_Terrain_FOUND)
+   message(SEND_ERROR "You need the terrain libs for Ogre.")
+else()
+   set(OGRE_LIBRARIES ${OGRE_LIBRARIES} ${OGRE_Terrain_LIBRARIES})
+endif()
+
 find_package(OIS REQUIRED)
  
 if(NOT OIS_FOUND)
 	message(SEND_ERROR "Failed to find OIS.")
 endif()
  
+find_package(Bullet REQUIRED)
+
+if (NOT BULLET_FOUND)
+        message(SEND_ERROR "Failed to find Bullet.")
+else()
+      message("-- Found bullet.")
+endif()
+
 # Find Boost
 if (NOT OGRE_BUILD_PLATFORM_IPHONE)
 	if (WIN32 OR APPLE)
@@ -82,17 +99,31 @@ if (NOT OGRE_BUILD_PLATFORM_IPHONE)
 	add_definitions(-DBOOST_ALL_NO_LIB)
 	set(OGRE_LIBRARIES ${OGRE_LIBRARIES} ${Boost_LIBRARIES})
 endif()
- 
+
+add_library(DotSceneLoader STATIC utils/DotSceneLoader.h utils/DotSceneLoader.cpp utils/rapidxml.hpp)
+
+add_library(BtOgre STATIC utils/BtOgrePG.h utils/BtOgreGP.h utils/BtOgreExtras.h utils/BtOgre.cpp)
+
 set(HDRS 
-      ./main.h
+      src/main.h
+
+      utils/DotSceneLoader.h
+      #utils/rapidxml.hpp
+       
+      utils/BtOgreExtras.h
+      utils/BtOgrePG.h
+      utils/BtOgreGP.h
       )
  
 set(SRCS
-      ./main.cpp
+      src/main.cpp
+      #utils/DotSceneLoader.cpp
+      #utils/BtOgre.cpp
 )
  
 include_directories( ${OIS_INCLUDE_DIRS}
 	${OGRE_INCLUDE_DIRS}
+	${BULLET_INCLUDE_DIRS}
 	#${OGRE_SAMPLES_INCLUDEPATH}
 )
  
@@ -100,7 +131,7 @@ add_executable(OgreApp ${HDRS} ${SRCS})
  
 set_target_properties(OgreApp PROPERTIES DEBUG_POSTFIX _d)
  
-target_link_libraries(OgreApp ${OGRE_LIBRARIES} ${OIS_LIBRARIES})
+target_link_libraries(OgreApp ${OGRE_LIBRARIES} ${OIS_LIBRARIES} ${BULLET_LIBRARIES} BtOgre DotSceneLoader)
  
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist/bin)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist/media)
