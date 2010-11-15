@@ -92,6 +92,9 @@ bool Test::go()
    mWindow->getCustomAttribute("WINDOW", &windowHnd);
    windowHndStr << windowHnd;
    pl.insert(std::make_pair(std::string("WINDOW"), windowHndStr.str()));
+   pl.insert(std::make_pair(std::string("x11_mouse_grab"), "false"));
+   pl.insert(std::make_pair(std::string("x11_mouse_hide"), "false"));
+   pl.insert(std::make_pair(std::string("x11_keyboard_grab"), "false"));
      
    mInputManager = OIS::InputManager::createInputSystem( pl );
    
@@ -252,9 +255,24 @@ bool Test::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
 bool Test::frameStarted(const Ogre::FrameEvent &evt)
 {
-   if (mKeyboard->isKeyDown(OIS::KC_T))
-      mBoxBody->applyCentralImpulse(btVector3(0,.25,.1));
+   if (mKeyboard->isKeyDown(OIS::KC_D))
+   {
+      btVector3 from = BtOgre::Convert::toBullet(mPlayerNode->convertLocalToWorldPosition(Ogre::Vector3(0,0,0)));
+      btVector3 to = BtOgre::Convert::toBullet(mPlayerNode->convertLocalToWorldPosition(Ogre::Vector3(1000,0,0)));
+
+      RayCall lol(from,to);
+      mWorld->rayTest(from,to,lol);
+      //cout<<to.x()<<endl<<endl;
+   }
+
    
+   
+   if (mKeyboard->isKeyDown(OIS::KC_T))
+   {
+      mBoxBody->activate();
+      mBoxBody->applyCentralImpulse(btVector3(0,.25,.1));
+   }
+
    if (mKeyboard->isKeyDown(OIS::KC_B))
       cout<<mCamera->getRealPosition().x<<' '<<mCamera->getRealPosition().z<<endl;
    
