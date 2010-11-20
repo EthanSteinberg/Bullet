@@ -14,10 +14,11 @@
 #      http://www.ogre3d.org/tikiwiki/
 #-----------------------------------------------------------------------------
 #*
-set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -Wshadow")
+cmake_minimum_required(VERSION 2.6)
+
 set(CMAKE_BUILD_TYPE Debug)
 
-cmake_minimum_required(VERSION 2.6)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/arch)
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/lib)
@@ -85,7 +86,7 @@ if (NOT OGRE_BUILD_PLATFORM_IPHONE)
 	endif ()
 	set(Boost_ADDITIONAL_VERSIONS "1.42" "1.42.0" "1.41.0" "1.41" "1.40.0" "1.40" "1.39.0" "1.39" "1.38.0" "1.38" "1.37.0" "1.37" )
 	# Components that need linking (NB does not include header-only components like bind)
-	set(OGRE_BOOST_COMPONENTS thread date_time)
+	set(OGRE_BOOST_COMPONENTS system thread date_time)
 	find_package(Boost COMPONENTS ${OGRE_BOOST_COMPONENTS} QUIET)
 	if (NOT Boost_FOUND)
 		# Try again with the other type of libs
@@ -100,89 +101,17 @@ if (NOT OGRE_BUILD_PLATFORM_IPHONE)
 	set(OGRE_LIBRARIES ${OGRE_LIBRARIES} ${Boost_LIBRARIES})
 endif()
 
-add_library(DotSceneLoader STATIC utils/DotSceneLoader.h utils/DotSceneLoader.cpp utils/rapidxml.hpp)
 
-add_library(BtOgre STATIC utils/BtOgrePG.h utils/BtOgreGP.h utils/BtOgreExtras.h utils/BtOgre.cpp)
 
-set(HDRS 
-      src/main.h
-
-      utils/DotSceneLoader.h
-      #utils/rapidxml.hpp
-       
-      utils/BtOgreExtras.h
-      utils/BtOgrePG.h
-      utils/BtOgreGP.h
-      )
- 
-set(SRCS
-      src/main.cpp
-      #utils/DotSceneLoader.cpp
-      #utils/BtOgre.cpp
-)
- 
 include_directories( ${OIS_INCLUDE_DIRS}
 	${OGRE_INCLUDE_DIRS}
 	${BULLET_INCLUDE_DIRS}
-	#${OGRE_SAMPLES_INCLUDEPATH}
+        ${CMAKE_SOURCE_DIR}/utils
 )
- 
-add_executable(OgreApp ${HDRS} ${SRCS})
- 
-set_target_properties(OgreApp PROPERTIES DEBUG_POSTFIX _d)
- 
-target_link_libraries(OgreApp ${OGRE_LIBRARIES} ${OIS_LIBRARIES} ${BULLET_LIBRARIES} BtOgre DotSceneLoader)
- 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist/bin)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/dist/media)
- 
-# post-build copy for win32
-if(WIN32 AND NOT MINGW)
-	add_custom_command( TARGET OgreApp PRE_BUILD
-		COMMAND if not exist .\\dist\\bin mkdir .\\dist\\bin )
-	add_custom_command( TARGET OgreApp POST_BUILD
-		COMMAND copy \"$(TargetPath)\" .\\dist\\bin )
-endif(WIN32 AND NOT MINGW)
-if(MINGW)
-	set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/dist/bin)
-endif(MINGW)
- 
-if(WIN32)
- 
-	install(TARGETS OgreApp
-		RUNTIME DESTINATION bin
-		CONFIGURATIONS All)
- 
-	install(DIRECTORY ${CMAKE_SOURCE_DIR}/dist/Media
-		DESTINATION ./
-		CONFIGURATIONS Release RelWithDebInfo Debug
-	)
- 
-	install(FILES ${CMAKE_SOURCE_DIR}/dist/bin/plugins.cfg
-		${CMAKE_SOURCE_DIR}/dist/bin/resources.cfg
-		DESTINATION bin
-		CONFIGURATIONS Release RelWithDebInfo
-	)
- 
-	install(FILES ${CMAKE_SOURCE_DIR}/dist/bin/plugins_d.cfg
-		${CMAKE_SOURCE_DIR}/dist/bin/resources_d.cfg
-		DESTINATION bin
-		CONFIGURATIONS Debug
-	)
- 
-	install(FILES ${OGRE_PLUGIN_DIR_REL}/OgreMain.dll
-		${OGRE_PLUGIN_DIR_REL}/RenderSystem_Direct3D9.dll
-		${OGRE_PLUGIN_DIR_REL}/RenderSystem_GL.dll
-		${OGRE_PLUGIN_DIR_REL}/OIS.dll
-		DESTINATION bin
-		CONFIGURATIONS Release RelWithDebInfo
-	)
- 
-	install(FILES ${OGRE_PLUGIN_DIR_DBG}/OgreMain_d.dll
-		${OGRE_PLUGIN_DIR_DBG}/RenderSystem_Direct3D9_d.dll
-		${OGRE_PLUGIN_DIR_DBG}/RenderSystem_GL_d.dll
-		${OGRE_PLUGIN_DIR_DBG}/OIS_d.dll
-		DESTINATION bin
-		CONFIGURATIONS Debug
-	)
-endif(WIN32)
+
+add_library(BtOgre STATIC utils/BtOgrePG.h utils/BtOgreGP.h utils/BtOgreExtras.h utils/BtOgre.cpp)
+
+add_library(DotSceneLoader STATIC utils/DotSceneLoader.h utils/DotSceneLoader.cpp utils/rapidxml.hpp)
+
+add_subdirectory(client) 
+add_subdirectory(server)

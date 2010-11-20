@@ -72,8 +72,13 @@ bool Test::go()
 
    //Create Scene looks
    Ogre::Entity* ogreHead = mSceneMgr->createEntity("", "Cone.mesh");
+   
+   mConeNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
+   mConeNode->attachObject(ogreHead);
+   mConeNode->setScale(5,5,5);
+   
+   
    mPlayerNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
-   mPlayerNode->attachObject(ogreHead);
    mPlayerNode->setPosition(0,20,0);
    
    mCameraYawNode = mPlayerNode->createChildSceneNode();
@@ -92,8 +97,8 @@ bool Test::go()
    mWindow->getCustomAttribute("WINDOW", &windowHnd);
    windowHndStr << windowHnd;
    pl.insert(std::make_pair(std::string("WINDOW"), windowHndStr.str()));
-   pl.insert(std::make_pair(std::string("x11_mouse_grab"), "false"));
-   pl.insert(std::make_pair(std::string("x11_mouse_hide"), "false"));
+   //pl.insert(std::make_pair(std::string("x11_mouse_grab"), "false"));
+   //pl.insert(std::make_pair(std::string("x11_mouse_hide"), "false"));
    pl.insert(std::make_pair(std::string("x11_keyboard_grab"), "false"));
      
    mInputManager = OIS::InputManager::createInputSystem( pl );
@@ -163,6 +168,7 @@ Test::~Test()
 
 bool Test::movePlayer(Ogre::Real time)
 {
+
    Ogre::Vector3 moveVec(0,0,0);
 
    mKeyboard->capture();
@@ -173,11 +179,15 @@ bool Test::movePlayer(Ogre::Real time)
    Ogre::Quaternion test(Ogre::Degree(state.X.rel * time * -20),Ogre::Vector3::UNIT_Y);
    Ogre::Quaternion test2(Ogre::Degree(state.Y.rel * time * -20),Ogre::Vector3::UNIT_X);
 
-   cameraQuat = cameraQuat * test;
+   moveQuat = moveQuat * test;
+   moveQuat.normalise();
+
+   cameraQuat = cameraQuat * test2;
    cameraQuat.normalise();
    
    mCameraYawNode->rotate(test);
    mCameraPitchNode->rotate(test2);
+   
 
    if (mKeyboard->isKeyDown(OIS::KC_ESCAPE))
       return false;
@@ -200,7 +210,7 @@ bool Test::movePlayer(Ogre::Real time)
    if(mKeyboard->isKeyDown(OIS::KC_F))
       moveVec.y += -20;
    
-   mPlayerNode->translate(cameraQuat * (moveVec * time));
+   mPlayerNode->translate(moveQuat * (moveVec * time));
    
    return true;
 }
@@ -255,17 +265,23 @@ bool Test::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
 bool Test::frameStarted(const Ogre::FrameEvent &evt)
 {
+
+   static int lols;   
+
    if (mKeyboard->isKeyDown(OIS::KC_D))
    {
+      Ogre::Vector3 Loc = mPlayerNode->getPosition();
       btVector3 from = BtOgre::Convert::toBullet(mPlayerNode->convertLocalToWorldPosition(Ogre::Vector3(0,0,0)));
-      btVector3 to = BtOgre::Convert::toBullet(mPlayerNode->convertLocalToWorldPosition(Ogre::Vector3(1000,0,0)));
+      btVector3 to = BtOgre::Convert::toBullet(mPlayerNode->convertLocalToWorldPosition(moveQuat * cameraQuat * Ogre::Quaternion(Ogre::Degree(-90), Ogre::Vector3::UNIT_Y)* Ogre::Vector3(-100,0,0)));
+      //to.normalize();
+     
+      mConeNode->setPosition(mPlayerNode->convertLocalToWorldPosition(moveQuat * cameraQuat * Ogre::Quaternion(Ogre::Degree(-90), Ogre::Vector3::UNIT_Y)* Ogre::Vector3(-100,0,0)));
+      
+       
 
       RayCall lol(from,to);
       mWorld->rayTest(from,to,lol);
-      //cout<<to.x()<<endl<<endl;
    }
-
-   
    
    if (mKeyboard->isKeyDown(OIS::KC_T))
    {
