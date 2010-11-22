@@ -5,3 +5,5 @@ Makefile
 dist
 CMakeCache.txt
 *.swp
+Ogre.log
+ogre.cfg
