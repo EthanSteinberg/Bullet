@@ -7,6 +7,8 @@
 #include "../utils/BtOgrePG.h"
 #include "../utils/BtOgreGP.h"
 #include "../utils/BtOgreExtras.h"
+#include <map>
+#include <string>
 
 #pragma GCC diagnostic warning "-Wunused-parameter"
 #pragma GCC diagnostic warning "-Wshadow"
@@ -62,10 +64,12 @@ private:
    btCollisionDispatcher *mDispatcher;
    btSequentialImpulseConstraintSolver *mSolver;
 
+   std::map<std::string,btRigidBody *> mBodies;
    btRigidBody *mBoxBody;
    btRigidBody *mPlayerBody;
    btRigidBody *mGroundBody;
 
+   std::map<std::string,btCollisionShape *> mShapes;
    btCollisionShape *mBoxShape;
    btCollisionShape *mPlayerShape;
    btCollisionShape *mGroundShape;

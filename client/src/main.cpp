@@ -1,4 +1,5 @@
 #include "main.h"
+#include "BulletXML.h"
 
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -266,8 +267,6 @@ bool Test::frameRenderingQueued(const Ogre::FrameEvent& evt)
 bool Test::frameStarted(const Ogre::FrameEvent &evt)
 {
 
-   static int lols;   
-
    if (mKeyboard->isKeyDown(OIS::KC_D))
    {
       Ogre::Vector3 Loc = mPlayerNode->getPosition();
@@ -285,8 +284,8 @@ bool Test::frameStarted(const Ogre::FrameEvent &evt)
    
    if (mKeyboard->isKeyDown(OIS::KC_T))
    {
-      mBoxBody->activate();
-      mBoxBody->applyCentralImpulse(btVector3(0,.25,.1));
+      mBodies["Box"]->activate();
+      mBodies["Box"]->applyCentralImpulse(btVector3(0,.25,.1));
    }
 
    if (mKeyboard->isKeyDown(OIS::KC_B))
@@ -342,6 +341,11 @@ void Test::loadPhx()
    dbgdraw = new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), mWorld);
    mWorld->setDebugDrawer(dbgdraw);
 
+   BulletXML test("lol.xml",mWorld,mSceneMgr,&mBodies,&mShapes);
+   test.parse();
+}
+/*
+   Ogre::SceneNode *mGroundNode = mSceneMgr->getSceneNode("Plane");
    Ogre::Entity *mGroundEnt = mSceneMgr->getEntity("Plane");
 
    Ogre::SceneNode *mBoxNode = mSceneMgr->getSceneNode("Cube");
@@ -371,11 +375,16 @@ void Test::loadPhx()
    BtOgre::StaticMeshToShapeConverter converter2(mGroundEnt);
    mGroundShape = converter2.createTrimesh();
 
+   //Calculate inertia.
+   mass = 0;
+   inertia = btVector3(0,0,0);
+   mGroundShape->calculateLocalInertia(mass, inertia);
+
    //Create MotionState (no need for BtOgre here, you can use it if you want to though).
-   btDefaultMotionState* mGroundState = new btDefaultMotionState();//btTransform(btQuaternion(0,0,0,1),btVector3(0,0,0)));
+   BtOgre::RigidBodyState *mGroundState = new BtOgre::RigidBodyState(mGroundNode);//btTransform(btQuaternion(0,0,0,1),btVector3(0,0,0)));
 
    //Create the Body.
-   btRigidBody::btRigidBodyConstructionInfo mGroundRigidInfo(0, mGroundState, mGroundShape, btVector3(0,0,0));
+   btRigidBody::btRigidBodyConstructionInfo mGroundRigidInfo(mass, mGroundState, mGroundShape, inertia);
    mGroundRigidInfo.m_friction = 1;
 
    mGroundBody = new btRigidBody(mGroundRigidInfo);
@@ -386,7 +395,7 @@ void Test::loadPhx()
    //addCylinder("Cylinder.006",mCyl3Shape,mCyl3Body,-1.9,-1.5,-.5);
    //addCylinder("Cylinder.007",mCyl4Shape,mCyl4Body,-1.9,1.5,-.5);
 }
-
+*/
 
 void Test::addCylinder(const char* name,btCollisionShape *mCylShape,btRigidBody *mCylBody,float bodyx, float bodyz,float wheelx)
 {
