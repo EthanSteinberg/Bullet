@@ -13,13 +13,13 @@
 bool recieved = 0;
 
 using namespace boost::asio::ip;
+
 using std::cout;
 using std::endl;
 
 void handler(const boost::system::error_code &error, std::size_t bytes_transferred);
 void pingtimeout(const boost::system::error_code &error,boost::asio::deadline_timer &timer, udp::socket &sock,t_pingPacket &pingPacket);
 void connecttimeout(const boost::system::error_code &error,boost::asio::deadline_timer &timer, udp::socket &sock,t_connectPacket &connectPacket);
-
 
 template<class t_packetType>
 void timeout(const boost::system::error_code &error, boost::asio::deadline_timer &timer, udp::socket &sock, t_packetType packetType)

@@ -127,7 +127,7 @@ bool Test::go()
    
    //Activate physics
    loadPhx(); 
-   BulletXML test("lol.xml",mWorld,mSceneMgr,&mStore,&mObjectsToNum);
+   BulletXML test("lol.xml",mWorld,mSceneMgr,&mCopyData,&mMeshes,&mStore);
    test.parse();
 
    //Need to see stuff

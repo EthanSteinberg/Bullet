@@ -7,3 +7,5 @@ CMakeCache.txt
 *.swp
 Ogre.log
 ogre.cfg
+*.a
+*_d

@@ -80,9 +80,13 @@ private:
    //btCollisionShape *mGroundShape;
   
 
-   bm mObjectsToNum;
-   std::map<std::string, t_Store> mStore;
+   //bm mObjectsToNum;
+   //std::map<std::string, t_Store> mStore;
+   //std::map<std::string, t_CopyData> mCopyData;
    std::map<std::string/*entity name*/, std::string/*meshlocation*/> mMeshes;
+   
+   std::map<uint16_t, t_CopyData> mCopyData;
+   std::map<std::string, t_Store> mStore;
 };
 
 class RayCall : public btCollisionWorld::RayResultCallback
