@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "src/network.h"
+#include "main.h"
 
 using namespace boost::asio::ip;
 
@@ -19,7 +19,7 @@ int main()
 {
    cout<<"The size of an object is "<<sizeof(t_objectData)<<" and "<<sizeof(t_objectPacket)<<endl;
 
-   server test;
+   Test test;
    test.start();
 }
 

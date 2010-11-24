@@ -17,6 +17,7 @@
 cmake_minimum_required(VERSION 2.6)
 
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS_DEBUG "-g -std=c++0x")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -113,6 +114,8 @@ include_directories( ${OIS_INCLUDE_DIRS}
 add_library(BtOgre STATIC utils/BtOgrePG.h utils/BtOgreGP.h utils/BtOgreExtras.h utils/BtOgre.cpp)
 
 add_library(DotSceneLoader STATIC utils/DotSceneLoader.h utils/DotSceneLoader.cpp utils/rapidxml.hpp)
+
+add_library(BulletXML STATIC utils/BulletXML.h utils/rapidxml.hpp utils/BulletXML.cpp)
 
 add_subdirectory(client) 
 add_subdirectory(server)

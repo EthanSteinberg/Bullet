@@ -1,19 +1,12 @@
-
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 #include <OGRE/Ogre.h>
 #include <OIS/OIS.h>
 #include "../utils/BtOgrePG.h"
 #include "../utils/BtOgreGP.h"
 #include "../utils/BtOgreExtras.h"
+#include "../utils/BulletXML.h"
 #include <map>
 #include <string>
 
-#pragma GCC diagnostic warning "-Wunused-parameter"
-#pragma GCC diagnostic warning "-Wshadow"
-
-#include "BulletXML.h"
 #include <boost/bimap.hpp>
 
 typedef boost::bimap<boost::bimaps::set_of<uint16_t>, boost::bimaps::set_of<std::string> > bm;

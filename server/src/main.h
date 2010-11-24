@@ -1,114 +1,120 @@
-#include "boost/date_time/posix_time/posix_time.hpp"
 
 #include <OGRE/Ogre.h>
-#include <btBulletDynamicsCommon.h>
+#include <OIS/OIS.h>
+#include "../utils/BtOgrePG.h"
+#include "../utils/BtOgreGP.h"
+#include "../utils/BtOgreExtras.h"
+#include "../utils/BulletXML.h"
+#include <map>
+#include <string>
 
-#include <cstdint>
+#include "network.h"
+#include <boost/bimap.hpp>
 
-struct t_Packet
+typedef boost::bimap<boost::bimaps::set_of<int>, boost::bimaps::set_of<boost::asio::ip::udp::endpoint> > bm;
+
+
+class Test : public Ogre::WindowEventListener,  public Ogre::FrameListener
 {
-   uint8_t type;
+public:
+   Test();
+   ~Test();
+   bool go();
+   void start(void);
 
-   t_Packet()
-   {
-      type = 0;
-   }
-};
+   void updateStats();
+   bool movePlayer(Ogre::Real time);
+   void loadPhx();
+   void addCylinder(const char* name,btCollisionShape *mClyShape,btRigidBody *mClyBody,float x, float z,float wheelx);
 
-struct t_pingPacket : public t_Packet
-{
-   int64_t time;
+protected:
+   virtual void windowResized(Ogre::RenderWindow* rw);
+   virtual void windowClosed(Ogre::RenderWindow* rw);
+   virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
+   virtual bool frameStarted(const Ogre::FrameEvent& evt);
 
-   t_pingPacket()
-   {
-      type = 1;
-   }
-};
-
-struct t_connectPacket : public t_Packet
-{
-   int64_t id;
+private:
+   void serverHandler(const boost::system::error_code &error, std::size_t bytes_transferred);
    
-   t_connectPacket()
-   {
-      type = 2;
-   }
-};
-
-struct t_worldPacket : public t_Packet
-{
-   int64_t numOfObjects;
+   uint8_t ReceiveBuffer[512];
+   int CurId; 
    
-   t_worldPacket()
-   {
-      type = 3;
-   }
+   bm table;
+   
+   boost::asio::ip::udp::endpoint *end;  
+   boost::asio::ip::udp::socket *sock;
+   
+   Ogre::Root *mRoot;
+   Ogre::String mPluginsCfg;
+   Ogre::String mResourcesCfg;
+   Ogre::RenderWindow* mWindow;
+   Ogre::SceneManager* mSceneMgr;
+   Ogre::Camera* mCamera;
+
+   OIS::InputManager* mInputManager;
+   OIS::Mouse*    mMouse;
+   OIS::Keyboard* mKeyboard;
+
+   Ogre::SceneNode *mConeNode;
+   
+   Ogre::SceneNode *mCameraYawNode;
+   Ogre::SceneNode *mCameraPitchNode;
+   Ogre::SceneNode *mPlayerNode;
+   Ogre::Quaternion cameraQuat;
+   Ogre::Quaternion moveQuat;   
+
+   Ogre::OverlayManager *mOverlayManager;
+
+   Ogre::Overlay *mFirstOverlay;
+   Ogre::Overlay *mDebugOverlay;
+
+   btDiscreteDynamicsWorld *mWorld;
+   BtOgre::DebugDrawer *dbgdraw;
+
+   btAxisSweep3 *mBroadphase;
+   btDefaultCollisionConfiguration *mCollisionConfig;
+   btCollisionDispatcher *mDispatcher;
+   btSequentialImpulseConstraintSolver *mSolver;
+
+   std::map<std::string/*entity name*/, std::string/*meshlocation*/> mMeshes;
+   
+   std::map<uint16_t, t_CopyData> mCopyData;
+   std::map<std::string, t_Store> mStore;
 };
 
-struct myVector3
-{
-   static const float SHORT_MAX = INT16_MAX;
-   static const float RANGE = 100;
-
-   int16_t x;
-   int16_t y;
-   int16_t z;
-
-   myVector3()
+class RayCall : public btCollisionWorld::RayResultCallback
    {
-      x = 0;
-      y = 0;
-      z = 0;
+   public:
+      RayCall(const btVector3&     rayFromWorld,const btVector3&   rayToWorld)
+      :m_rayFromWorld(rayFromWorld),
+      m_rayToWorld(rayToWorld)
+      {
+      }
+
+      btVector3 m_rayFromWorld;//used to calculate hitPointWorld from hitFraction
+      btVector3 m_rayToWorld;
+
+      btVector3 m_hitNormalWorld;
+      btVector3 m_hitPointWorld;
+         
+      virtual   btScalar        addSingleResult(btCollisionWorld::LocalRayResult& rayResult,bool normalInWorldSpace)
+      {
+         btAssert(rayResult.m_hitFraction <= m_closestHitFraction);
+         
+         m_closestHitFraction = rayResult.m_hitFraction;
+
+         m_collisionObject = rayResult.m_collisionObject;
+         if (normalInWorldSpace)
+         {
+            m_hitNormalWorld = rayResult.m_hitNormalLocal;
+         } else
+         {
+            ///need to transform normal into worldspace
+            m_hitNormalWorld = m_collisionObject->getWorldTransform().getBasis()*rayResult.m_hitNormalLocal;
+         }
+         m_hitPointWorld.setInterpolate3(m_rayFromWorld,m_rayToWorld,rayResult.m_hitFraction);
+         
+         return 1.f;
+      }
    };
 
-   myVector3(const Ogre::Vector3 &vec3)
-   {
-      x = vec3.x/RANGE * SHORT_MAX;
-      y = vec3.y/RANGE * SHORT_MAX;
-      z = vec3.z/RANGE * SHORT_MAX;
-   }
-
-   operator Ogre::Vector3()
-   {
-      Ogre::Vector3 vec3;
-
-      vec3.x = x/ SHORT_MAX * RANGE;
-      vec3.y = y/ SHORT_MAX * RANGE;
-      vec3.z = z/ SHORT_MAX * RANGE;
-
-      return vec3;
-   } 
-};
-
-struct t_objectData
-{
-   char name[20];
-
-   char nodeName[20];
-   char entName[20];
-   char meshLocation[20];
-
-   myVector3 position;
-   myVector3 orientation;
-   myVector3 totalForce;
-   myVector3 totalTorque;
-   //Ogre::Vector3 position;
-   //Ogre::Quaternion orientation;
-   
-   //btVector3 totalForce;
-   //btVector3 totalTorque;
-
-   uint16_t mass;
-   uint16_t friction;
-   uint8_t type;
-};
-
-//NEED TO SET TYPE YOURSELF
-struct t_objectPacket : public t_Packet 
-{
-   int64_t numOfObjects;
-
-   uint16_t numbers[4];
-   
-   t_objectData objectData[];
-};

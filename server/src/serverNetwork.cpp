@@ -9,13 +9,14 @@
 #include <vector>
 
 #include "src/network.h"
+#include "main.h"
 
 using std::cout;
 using std::endl;
 
 using namespace boost::asio::ip;
 
-void server::start()
+void Test::start()
 {
    CurId = 0;
 
@@ -25,12 +26,12 @@ void server::start()
    sock = new udp::socket(ioserv,ends);
    end = new udp::endpoint;
    
-   sock->async_receive_from(boost::asio::buffer(ReceiveBuffer),*end,boost::bind(&server::serverHandler,this,_1,_2));
+   sock->async_receive_from(boost::asio::buffer(ReceiveBuffer),*end,boost::bind(&Test::serverHandler,this,_1,_2));
 
    ioserv.run();
 }
 
-void server::serverHandler(const boost::system::error_code& error, std::size_t /*bytes_transferred*/)
+void Test::serverHandler(const boost::system::error_code& error, std::size_t /*bytes_transferred*/)
 {
    switch(reinterpret_cast<t_Packet *>(ReceiveBuffer)->type)
    {
@@ -127,5 +128,5 @@ void server::serverHandler(const boost::system::error_code& error, std::size_t /
          cout<<"Who knows what packet I got!!"<<endl;
    }  
    
-   sock->async_receive_from(boost::asio::buffer(ReceiveBuffer),*end,boost::bind(&server::serverHandler,this,_1,_2));
+   sock->async_receive_from(boost::asio::buffer(ReceiveBuffer),*end,boost::bind(&Test::serverHandler,this,_1,_2));
 }

@@ -7,10 +7,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -std=c++0x")
 
 set(HDRS 
       src/main.h
-      src/BulletXML.h
+      
+      #utils/BulletXML.h
       #utils/DotSceneLoader.h
-      #utils/rapidxml.hpp
-       
       #utils/BtOgreExtras.h
       #utils/BtOgrePG.h
       #utils/BtOgreGP.h
@@ -18,12 +17,8 @@ set(HDRS
  
 set(SRCS
       src/main.cpp
-      #utils/DotSceneLoader.cpp
-      #utils/BtOgre.cpp
 )
 
-add_library(BulletXML src/BulletXML.h ../utils/rapidxml.hpp src/BulletXML.cpp)
- 
 add_executable(OgreApp ${HDRS} ${SRCS})
  
 set_target_properties(OgreApp PROPERTIES DEBUG_POSTFIX _d)

@@ -1,3 +1,6 @@
+#ifndef NETWORK_H_INCLUDED
+#define NETWORK_H_INCLUDED
+
 #include "boost/date_time/posix_time/posix_time.hpp"
 
 #include <OGRE/Ogre.h>
@@ -132,3 +135,4 @@ struct t_objectPacket : public t_Packet
    
    t_objectData objectData[];
 };
+#endif

@@ -13,15 +13,15 @@ set(HDRS
  
 set(SRCS
       src/main.cpp
+      src/serverGraphics.cpp
       src/serverNetwork.cpp
 )
  
- 
-add_executable(OgreSer ${HDRS} ${SRCS})
- 
+add_executable(OgreSer ${HDRS} ${SRCS}) 
 set_target_properties(OgreSer PROPERTIES DEBUG_POSTFIX _d)
- 
-target_link_libraries(OgreSer ${OGRE_LIBRARIES} ${OIS_LIBRARIES} ${BULLET_LIBRARIES} BtOgre DotSceneLoader)
+target_link_libraries(OgreSer ${OGRE_LIBRARIES} ${OIS_LIBRARIES} ${BULLET_LIBRARIES} BulletXML BtOgre DotSceneLoader)
+
+
 
 
 add_executable(OgreCli src/network.h src/client.cpp)
