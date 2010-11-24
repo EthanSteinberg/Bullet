@@ -7,6 +7,7 @@
 #include <OgreQuaternion.h>
 #include <OgreResourceGroupManager.h>
 #include <vector>
+#include <string>
  
 #include "rapidxml.hpp"
  
@@ -39,7 +40,7 @@
         DotSceneLoader();
         virtual ~DotSceneLoader();
  
-        void parseDotScene(const Ogre::String &SceneName, const Ogre::String &groupName, Ogre::SceneManager *yourSceneMgr, Ogre::SceneNode *pAttachNode = NULL, const Ogre::String &sPrependNode = "");
+        void parseDotScene(const Ogre::String &SceneName, const Ogre::String &groupName, Ogre::SceneManager *yourSceneMgr, std::map<std::string,std::string> *Meshes, Ogre::SceneNode *pAttachNode = NULL, const Ogre::String &sPrependNode = "");
         Ogre::String getProperty(const Ogre::String &ndNm, const Ogre::String &prop);
  
         Ogre::TerrainGroup* getTerrainGroup() { return mTerrainGroup; }
@@ -96,6 +97,8 @@
         Ogre::TerrainGroup* mTerrainGroup;
         Ogre::Vector3 mTerrainPosition;
         Ogre::Vector3 mLightDirection;
+
+        std::map<std::string,std::string> *mMeshes;
     };
  
 #endif // DOT_SCENELOADER_H

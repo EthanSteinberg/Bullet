@@ -13,6 +13,11 @@
 #pragma GCC diagnostic warning "-Wunused-parameter"
 #pragma GCC diagnostic warning "-Wshadow"
 
+#include "BulletXML.h"
+#include <boost/bimap.hpp>
+
+typedef boost::bimap<boost::bimaps::set_of<uint16_t>, boost::bimaps::set_of<std::string> > bm;
+
 class Test : public Ogre::WindowEventListener,  public Ogre::FrameListener
 {
 public:
@@ -64,15 +69,20 @@ private:
    btCollisionDispatcher *mDispatcher;
    btSequentialImpulseConstraintSolver *mSolver;
 
-   std::map<std::string,btRigidBody *> mBodies;
-   btRigidBody *mBoxBody;
-   btRigidBody *mPlayerBody;
-   btRigidBody *mGroundBody;
+   //std::map<std::string,btRigidBody *> mBodies;
+   //btRigidBody *mBoxBody;
+   //btRigidBody *mPlayerBody;
+   //btRigidBody *mGroundBody;
 
-   std::map<std::string,btCollisionShape *> mShapes;
-   btCollisionShape *mBoxShape;
-   btCollisionShape *mPlayerShape;
-   btCollisionShape *mGroundShape;
+   //std::map<std::string,btCollisionShape *> mShapes;
+   //btCollisionShape *mBoxShape;
+   //btCollisionShape *mPlayerShape;
+   //btCollisionShape *mGroundShape;
+  
+
+   bm mObjectsToNum;
+   std::map<std::string, t_Store> mStore;
+   std::map<std::string/*entity name*/, std::string/*meshlocation*/> mMeshes;
 };
 
 class RayCall : public btCollisionWorld::RayResultCallback

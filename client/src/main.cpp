@@ -123,10 +123,12 @@ bool Test::go()
    
    //Load scene
    DotSceneLoader loader;
-   loader.parseDotScene("lol.scene","General", mSceneMgr);
+   loader.parseDotScene("lol.scene","General", mSceneMgr,&mMeshes);
    
    //Activate physics
    loadPhx(); 
+   BulletXML test("lol.xml",mWorld,mSceneMgr,&mStore,&mObjectsToNum);
+   test.parse();
 
    //Need to see stuff
    mSceneMgr->setAmbientLight(Ogre::ColourValue(0.5, 0.5, 0.5));
@@ -284,8 +286,8 @@ bool Test::frameStarted(const Ogre::FrameEvent &evt)
    
    if (mKeyboard->isKeyDown(OIS::KC_T))
    {
-      mBodies["Box"]->activate();
-      mBodies["Box"]->applyCentralImpulse(btVector3(0,.25,.1));
+      mStore["Box"].body->activate();
+      mStore["Box"].body->applyCentralImpulse(btVector3(0,.25,.1));
    }
 
    if (mKeyboard->isKeyDown(OIS::KC_B))
@@ -340,9 +342,6 @@ void Test::loadPhx()
 
    dbgdraw = new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), mWorld);
    mWorld->setDebugDrawer(dbgdraw);
-
-   BulletXML test("lol.xml",mWorld,mSceneMgr,&mBodies,&mShapes);
-   test.parse();
 }
 /*
    Ogre::SceneNode *mGroundNode = mSceneMgr->getSceneNode("Plane");
@@ -396,7 +395,7 @@ void Test::loadPhx()
    //addCylinder("Cylinder.007",mCyl4Shape,mCyl4Body,-1.9,1.5,-.5);
 }
 */
-
+/*
 void Test::addCylinder(const char* name,btCollisionShape *mCylShape,btRigidBody *mCylBody,float bodyx, float bodyz,float wheelx)
 {
    Ogre::SceneNode *mCylNode = mSceneMgr->getSceneNode(name);
@@ -427,3 +426,4 @@ void Test::addCylinder(const char* name,btCollisionShape *mCylShape,btRigidBody 
    mWorld->addConstraint(Constraint,true);
    //mCylBody->setAngularVelocity(axisB);
 }
+*/

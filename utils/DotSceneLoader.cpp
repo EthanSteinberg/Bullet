@@ -24,8 +24,11 @@ DotSceneLoader::~DotSceneLoader()
     OGRE_DELETE mTerrainGlobalOptions;
 }
  
-void DotSceneLoader::parseDotScene(const Ogre::String &SceneName, const Ogre::String &groupName, Ogre::SceneManager *yourSceneMgr, Ogre::SceneNode *pAttachNode, const Ogre::String &sPrependNode)
+void DotSceneLoader::parseDotScene(const Ogre::String &SceneName, const Ogre::String &groupName, Ogre::SceneManager *yourSceneMgr, std::map<std::string,std::string> *Meshes, Ogre::SceneNode *pAttachNode, const Ogre::String &sPrependNode)
 {
+   //My edit
+   mMeshes = Meshes;
+
     // set up shared object values
     m_sGroupName = groupName;
     mSceneMgr = yourSceneMgr;
@@ -668,7 +671,10 @@ void DotSceneLoader::processEntity(rapidxml::xml_node<>* XMLNode, Ogre::SceneNod
     Ogre::String materialFile = getAttrib(XMLNode, "materialFile");
     bool isStatic = getAttribBool(XMLNode, "static", false);;
     bool castShadows = getAttribBool(XMLNode, "castShadows", true);
- 
+
+   //Add the mesh file to the maping
+   (*mMeshes)[name] = meshFile;
+
     // TEMP: Maintain a list of static and dynamic objects
     if(isStatic)
         staticObjects.push_back(name);

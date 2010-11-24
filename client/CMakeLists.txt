@@ -3,7 +3,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -std=c++0x")
 
 set(HDRS 
       src/main.h
