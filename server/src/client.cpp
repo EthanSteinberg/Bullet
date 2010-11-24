@@ -8,7 +8,7 @@
 #include <map>
 #include <set>
 
-#include "main.h"
+#include "network.h"
 
 bool recieved = 0;
 
