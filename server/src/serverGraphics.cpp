@@ -1,4 +1,4 @@
-#include "main.h"
+#include "server.h"
 
 #include <OGRE/Ogre.h>
 #include <OIS/OIS.h>
@@ -11,7 +11,7 @@
 
 using namespace std;
 
-bool Test::go()
+bool Server::go()
 {
    #ifdef _DEBUG
    mResourcesCfg = "resources_d.cfg";
@@ -116,7 +116,7 @@ bool Test::go()
    //Show Overlay
    mOverlayManager = Ogre::OverlayManager::getSingletonPtr();
 
-   mFirstOverlay = mOverlayManager->getByName("Test");
+   mFirstOverlay = mOverlayManager->getByName("Server");
    mFirstOverlay->show();
 
    mDebugOverlay = mOverlayManager->getByName("Core/DebugOverlay");
@@ -143,18 +143,18 @@ bool Test::go()
 }
 
 
-Test::Test() : mRoot(0), mPluginsCfg(Ogre::StringUtil::BLANK) 
+Server::Server() : mRoot(0), mPluginsCfg(Ogre::StringUtil::BLANK) 
 {
 }
 
-Test::~Test()
+Server::~Server()
 {
    Ogre::WindowEventUtilities::removeWindowEventListener(mWindow, this);
    windowClosed(mWindow);
    delete mRoot;
 }
 
-bool Test::movePlayer(Ogre::Real time)
+bool Server::movePlayer(Ogre::Real time)
 {
 
    Ogre::Vector3 moveVec(0,0,0);
@@ -203,7 +203,7 @@ bool Test::movePlayer(Ogre::Real time)
    return true;
 }
   
-void Test::updateStats(void)
+void Server::updateStats(void)
 {
    static Ogre::String currFps = "Current FPS: ";
    static Ogre::String avgFps = "Average FPS: ";
@@ -237,7 +237,7 @@ void Test::updateStats(void)
    catch(...) { /* ignore */ }
 }
 
-bool Test::frameRenderingQueued(const Ogre::FrameEvent& evt)
+bool Server::frameRenderingQueued(const Ogre::FrameEvent& evt)
 {
    Ogre::Real time = evt.timeSinceLastFrame;
 
@@ -251,7 +251,7 @@ bool Test::frameRenderingQueued(const Ogre::FrameEvent& evt)
    return true;
 }
 
-bool Test::frameStarted(const Ogre::FrameEvent &evt)
+bool Server::frameStarted(const Ogre::FrameEvent &evt)
 {
 
    if (mKeyboard->isKeyDown(OIS::KC_D))
@@ -286,7 +286,7 @@ bool Test::frameStarted(const Ogre::FrameEvent &evt)
    return true;
 }
 
-void Test::windowResized(Ogre::RenderWindow* rw)
+void Server::windowResized(Ogre::RenderWindow* rw)
 {
     unsigned int width, height, depth;
     int left, top;
@@ -299,7 +299,7 @@ void Test::windowResized(Ogre::RenderWindow* rw)
 }
  
 //Unattach OIS before window shutdown (very important under Linux)
-void Test::windowClosed(Ogre::RenderWindow* rw)
+void Server::windowClosed(Ogre::RenderWindow* rw)
 {
     //Only close for window that created OIS (the main window in these demos)
     if( rw == mWindow )
@@ -315,7 +315,7 @@ void Test::windowClosed(Ogre::RenderWindow* rw)
     }
 }
 
-void Test::loadPhx()
+void Server::loadPhx()
 {
    mBroadphase = new btAxisSweep3(btVector3(-10000,-10000,-10000), btVector3(10000,10000,10000), 1024);
    mCollisionConfig = new btDefaultCollisionConfiguration();
@@ -329,14 +329,14 @@ void Test::loadPhx()
    mWorld->setDebugDrawer(dbgdraw);
 }
 
-void Test::StartMoveEvents()
+void Server::StartMoveEvents()
 {
     //call stuff that only runs once
 
-    boost::thread moveevents(&Test::MoveEvents,this);
+    boost::thread moveevents(&Server::MoveEvents,this);
 }
 
-void Test::MoveEvents()
+void Server::MoveEvents()
 {
     boost::posix_time::ptime time;
     
@@ -352,7 +352,7 @@ void Test::MoveEvents()
     }
 }
 
-void Test::MoveFunction()
+void Server::MoveFunction()
 {
    static boost::posix_time::ptime time;
 

@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 2.6)
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -std=c++0x")
 
 set(HDRS 
-      src/main.h
+      src/client.h
       
       #utils/BulletXML.h
       #utils/DotSceneLoader.h
@@ -16,7 +16,7 @@ set(HDRS
       )
  
 set(SRCS
-      src/main.cpp
+      src/clientGraphics.cpp
 )
 
 add_executable(OgreApp ${HDRS} ${SRCS})

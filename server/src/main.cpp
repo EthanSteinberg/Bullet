@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "main.h"
+#include "server.h"
 
 using namespace boost::asio::ip;
 
@@ -19,21 +19,21 @@ int main()
 {
    try
    {
-      Test test;
+      Server test;
       test.start();
       test.go();
 
       test.run();
    }
 
-   catch(std::exception &e)
-   {
-      cout<<e.what()<<endl;
-   }
-
    catch(Ogre::Exception& e)
    {
       cout<<"An exeption has occured: "<<e.getFullDescription().c_str()<<endl;
+   }
+
+   catch(std::exception &e)
+   {
+      cout<<e.what()<<endl;
    }
 
    catch(...)

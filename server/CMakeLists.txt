@@ -5,10 +5,10 @@ cmake_minimum_required(VERSION 2.6)
 set(CMAKE_BUILD_TYPE Debug)
 
 #set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -Wshadow")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -std=c++0x")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -std=c++0x")
 
 set(HDRS 
-      src/network.h
+      ../network/network.h
       )
  
 set(SRCS
@@ -24,6 +24,6 @@ target_link_libraries(OgreSer ${OGRE_LIBRARIES} ${OIS_LIBRARIES} ${BULLET_LIBRAR
 
 
 
-add_executable(OgreCli src/network.h src/client.cpp)
+add_executable(OgreCli src/client.cpp)
 set_target_properties(OgreCli PROPERTIES DEBUG_POSTFIX _d)
 target_link_libraries(OgreCli ${BULLET_LIBRARIES} ${OGRE_LIBRARIES} ${Boost_LIBRARIES} stdc++)
