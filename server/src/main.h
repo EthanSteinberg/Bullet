@@ -21,6 +21,7 @@ public:
    ~Test();
    bool go();
    void start(void);
+   void run();
 
    void updateStats();
    bool movePlayer(Ogre::Real time);
@@ -35,12 +36,17 @@ protected:
 
 private:
    void serverHandler(const boost::system::error_code &error, std::size_t bytes_transferred);
+   void MoveEvents();
+   void MoveFunction();
+   void StartMoveEvents();
+
    
    uint8_t ReceiveBuffer[512];
    int CurId; 
    
    bm table;
    
+   boost::asio::io_service ioserv;
    boost::asio::ip::udp::endpoint *end;  
    boost::asio::ip::udp::socket *sock;
    

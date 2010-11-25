@@ -4,6 +4,8 @@
 #include <OIS/OIS.h>
 #include "../utils/DotSceneLoader.h"
 #include "../utils/BulletXML.h"
+#include <boost/thread.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <iostream>
 
@@ -54,6 +56,9 @@ bool Test::go()
    Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
    Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
     
+
+   std::cout<<"STRSTRSTRST"<<std::endl;
+
    //Create Scene Manager
    mSceneMgr = mRoot->createSceneManager("DefaultSceneManager");
    mSceneMgr->setSkyDome(true,"SkyDome");
@@ -94,8 +99,8 @@ bool Test::go()
    mWindow->getCustomAttribute("WINDOW", &windowHnd);
    windowHndStr << windowHnd;
    pl.insert(std::make_pair(std::string("WINDOW"), windowHndStr.str()));
-   //pl.insert(std::make_pair(std::string("x11_mouse_grab"), "false"));
-   //pl.insert(std::make_pair(std::string("x11_mouse_hide"), "false"));
+   pl.insert(std::make_pair(std::string("x11_mouse_grab"), "false"));
+   pl.insert(std::make_pair(std::string("x11_mouse_hide"), "false"));
    pl.insert(std::make_pair(std::string("x11_keyboard_grab"), "false"));
      
    mInputManager = OIS::InputManager::createInputSystem( pl );
@@ -130,7 +135,9 @@ bool Test::go()
    mSceneMgr->setAmbientLight(Ogre::ColourValue(0.5, 0.5, 0.5));
    
    mPlayerNode->setPosition(0,20,0);
-   mRoot->startRendering();
+   //mRoot->startRendering();
+
+   StartMoveEvents();
    
    return true;
 }
@@ -320,4 +327,50 @@ void Test::loadPhx()
 
    dbgdraw = new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), mWorld);
    mWorld->setDebugDrawer(dbgdraw);
+}
+
+void Test::StartMoveEvents()
+{
+    //call stuff that only runs once
+
+    boost::thread moveevents(&Test::MoveEvents,this);
+}
+
+void Test::MoveEvents()
+{
+    boost::posix_time::ptime time;
+    
+    for (;;)
+    {
+        time = boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(100); //minimum time between movements
+
+        //call other functions here
+        //see if keys are pressed by checking the KeyPressed array
+        MoveFunction();
+	 
+        boost::this_thread::sleep(time);
+    }
+}
+
+void Test::MoveFunction()
+{
+   static boost::posix_time::ptime time;
+
+   if (time.is_special())
+   {
+      time = boost::posix_time::microsec_clock::universal_time();
+   }
+
+   //if (mKeyboard->isKeyDown(OIS::KC_T))
+   {
+      mStore["Box"].body->activate();
+      mStore["Box"].body->applyCentralForce(btVector3(0,2500,1000));
+   }
+
+   if (mKeyboard->isKeyDown(OIS::KC_B))
+      cout<<mCamera->getRealPosition().x<<' '<<mCamera->getRealPosition().z<<endl;
+   
+   mWorld->stepSimulation((boost::posix_time::microsec_clock::universal_time() - time).total_microseconds()/1000000.0, 10);
+      
+   time = boost::posix_time::microsec_clock::universal_time();
 }

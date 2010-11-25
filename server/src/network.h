@@ -71,7 +71,7 @@ struct t_worldPacket : public t_Packet
 struct myVector3
 {
    static const float SHORT_MAX = INT16_MAX;
-   static const float RANGE = 100;
+   static const float RANGE = 1000;
 
    int16_t x;
    int16_t y;
@@ -94,10 +94,28 @@ struct myVector3
    operator Ogre::Vector3()
    {
       Ogre::Vector3 vec3;
-
+      
       vec3.x = x/ SHORT_MAX * RANGE;
       vec3.y = y/ SHORT_MAX * RANGE;
       vec3.z = z/ SHORT_MAX * RANGE;
+
+      return vec3;
+   } 
+
+   myVector3(const btVector3 &vec3)
+   {
+      x = vec3.x()/RANGE * SHORT_MAX;
+      y = vec3.y()/RANGE * SHORT_MAX;
+      z = vec3.z()/RANGE * SHORT_MAX;
+   }
+   
+   operator btVector3()
+   {
+      btVector3 vec3;
+
+      vec3.setX(x/ SHORT_MAX * RANGE);
+      vec3.setY(y/ SHORT_MAX * RANGE);
+      vec3.setZ(z/ SHORT_MAX * RANGE);
 
       return vec3;
    } 
@@ -107,16 +125,16 @@ struct t_objectData
 {
    char name[20];
 
-   char nodeName[20];
+   char sceneName[20];
    char entName[20];
-   char meshLocation[20];
+   char meshName[20];
 
    myVector3 position;
-   myVector3 orientation;
-   myVector3 totalForce;
-   myVector3 totalTorque;
+   //myVector3 orientation;
+   myVector3 linearVelocity;
+   myVector3 angularVelocity;
    //Ogre::Vector3 position;
-   //Ogre::Quaternion orientation;
+   Ogre::Quaternion orientation;
    
    //btVector3 totalForce;
    //btVector3 totalTorque;

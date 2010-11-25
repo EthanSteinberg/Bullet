@@ -17,9 +17,28 @@ using std::endl;
 
 int main()
 {
-   cout<<"The size of an object is "<<sizeof(t_objectData)<<" and "<<sizeof(t_objectPacket)<<endl;
+   try
+   {
+      Test test;
+      test.start();
+      test.go();
 
-   Test test;
-   test.start();
+      test.run();
+   }
+
+   catch(std::exception &e)
+   {
+      cout<<e.what()<<endl;
+   }
+
+   catch(Ogre::Exception& e)
+   {
+      cout<<"An exeption has occured: "<<e.getFullDescription().c_str()<<endl;
+   }
+
+   catch(...)
+   {
+      cout<<"Some thing bad happened"<<endl;
+   }
 }
 

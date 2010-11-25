@@ -20,14 +20,16 @@ void Test::start()
 {
    CurId = 0;
 
-   boost::asio::io_service ioserv;
    udp::endpoint ends(udp::v4(),1327);
    
    sock = new udp::socket(ioserv,ends);
    end = new udp::endpoint;
    
    sock->async_receive_from(boost::asio::buffer(ReceiveBuffer),*end,boost::bind(&Test::serverHandler,this,_1,_2));
+}
 
+void Test::run()
+{
    ioserv.run();
 }
 
@@ -86,9 +88,9 @@ void Test::serverHandler(const boost::system::error_code& error, std::size_t /*b
          cout<<"Someone from "<<end->address().to_string()<<" with id "<<table.right.find(*end)->second<<" wants the world"<<endl;
 
          t_worldPacket worldPacket(*reinterpret_cast<t_worldPacket *>(ReceiveBuffer));
-         worldPacket.numOfObjects = 6;
+         worldPacket.numOfObjects = mCopyData.size();
 
-         cout<<"Telling them the world has five objects"<<endl<<endl;
+         cout<<"Telling them the world has "<<worldPacket.numOfObjects<<" objects"<<endl<<endl;
          sock->send_to(boost::asio::buffer(&worldPacket,sizeof(worldPacket)),*end);
       }
          break;
@@ -112,16 +114,28 @@ void Test::serverHandler(const boost::system::error_code& error, std::size_t /*b
          cout<<"Created new packet of right size(hopefully)"<<endl;
          cout<<"Setting them all to zero, so I can be lazy"<<endl; 
 
-         //memset(newObjectPacket->objectData,0,newObjectPacket->numOfObjects * sizeof(t_objectData));
+         for (int i = 0;i<objectPacket.numOfObjects;i++)
+         {
+            int l = objectPacket.numbers[i];
+            t_CopyData temp = mCopyData[l];
 
-         cout<<"Setting first to name ";
-         strcpy(newObjectPacket->objectData[0].name,"wow");
-         cout<<newObjectPacket->objectData[0].name<<endl;
+            strcpy(newObjectPacket->objectData[l].name,temp.name.c_str());
+            strcpy(newObjectPacket->objectData[l].sceneName,temp.sceneName.c_str());
+            strcpy(newObjectPacket->objectData[l].entName,temp.entName.c_str());
+            strcpy(newObjectPacket->objectData[l].meshName,temp.meshName.c_str());
 
+            Ogre::SceneNode *node = mStore[temp.name].node; 
+            btRigidBody *body = mStore[temp.name].body;
+
+            newObjectPacket->objectData[l].position = node->getPosition(); 
+            newObjectPacket->objectData[l].orientation = node->getOrientation(); 
+            
+            newObjectPacket->objectData[l].linearVelocity = body->getLinearVelocity();
+            newObjectPacket->objectData[l].angularVelocity = body->getAngularVelocity();
+         }
+         
          cout<<"Finially sending the stupid thing over, it has a size of "<<(sizeof(t_objectPacket) + objectPacket.numOfObjects * sizeof(t_objectData))<<endl<<endl;
          sock->send_to(boost::asio::buffer(newObjectPacket,sizeof(t_objectPacket) + objectPacket.numOfObjects * sizeof(t_objectData)),*end);
-
-
       }
 
       default:
