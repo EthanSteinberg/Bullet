@@ -39,11 +39,6 @@ std::set<uint16_t> objectsLeft;
 
 int main(int argc, char *argv[])
 {
-
-   btVector3 test(3,2,1);
-   myVector3 sos = test;
-   cout<<(Ogre::Vector3)sos<<endl;
-
    if (argc != 2)
    {
       std::cout<<"Wrong Number of arguments"<<std::endl;
@@ -191,15 +186,15 @@ void handler(const boost::system::error_code& error, std::size_t /*bytes_transfe
          t_objectPacket *objectPacket = reinterpret_cast<t_objectPacket *>(ReceiveBuffer);
          cout<<"The packet has "<<objectPacket->numOfObjects<<" objects"<<endl<<endl;
 
-         cout<<"The first object has a name of "<<objectPacket->objectData[0].name<<endl<<endl;
-         cout<<"The first object has a name of "<<objectPacket->objectData[0].entName<<endl<<endl;
-         cout<<"The first object has a name of "<<objectPacket->objectData[0].sceneName<<endl<<endl;
-         cout<<"The first object has a name of "<<objectPacket->objectData[0].meshName<<endl<<endl;
+         cout<<"The first object has a name of "<<objectPacket->objectData[0].name<<endl;
+         cout<<"The first object has a name of "<<objectPacket->objectData[0].entName<<endl;
+         cout<<"The first object has a name of "<<objectPacket->objectData[0].sceneName<<endl;
+         cout<<"The first object has a name of "<<objectPacket->objectData[0].meshName<<endl;
          
-         cout<<"The first object has a name of "<<(Ogre::Vector3) objectPacket->objectData[0].position<<endl<<endl;
-         cout<<"The first object has a name of "<<objectPacket->objectData[0].orientation<<endl<<endl;
-         cout<<"The first object has a name of "<<(Ogre::Vector3) objectPacket->objectData[0].linearVelocity<<endl<<endl;
-         cout<<"The first object has a name of "<<(Ogre::Vector3) objectPacket->objectData[0].angularVelocity<<endl<<endl;
+         cout<<"The first object has a name of "<<(Ogre::Vector3) objectPacket->objectData[0].position<<endl;
+         cout<<"The first object has a name of "<<objectPacket->objectData[0].orientation<<endl;
+         cout<<"The first object has a name of "<<(Ogre::Vector3) objectPacket->objectData[0].linearVelocity<<endl;
+         cout<<"The first object has a name of "<<(Ogre::Vector3) objectPacket->objectData[0].angularVelocity<<endl;
 
          for (int i = 0;i<objectPacket->numOfObjects;i++)
          {

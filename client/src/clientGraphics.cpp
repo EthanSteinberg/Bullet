@@ -1,17 +1,15 @@
-#include "server.h"
+#include "client.h"
 
 #include <OGRE/Ogre.h>
 #include <OIS/OIS.h>
-#include "../utils/DotSceneLoader.h"
 #include "../utils/BulletXML.h"
-#include <boost/thread.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include "../utils/DotSceneLoader.h"
 
 #include <iostream>
 
 using namespace std;
 
-bool Server::go()
+bool Client::go()
 {
    #ifdef _DEBUG
    mResourcesCfg = "resources_d.cfg";
@@ -96,8 +94,8 @@ bool Server::go()
    mWindow->getCustomAttribute("WINDOW", &windowHnd);
    windowHndStr << windowHnd;
    pl.insert(std::make_pair(std::string("WINDOW"), windowHndStr.str()));
-   pl.insert(std::make_pair(std::string("x11_mouse_grab"), "false"));
-   pl.insert(std::make_pair(std::string("x11_mouse_hide"), "false"));
+   //pl.insert(std::make_pair(std::string("x11_mouse_grab"), "false"));
+   //pl.insert(std::make_pair(std::string("x11_mouse_hide"), "false"));
    pl.insert(std::make_pair(std::string("x11_keyboard_grab"), "false"));
      
    mInputManager = OIS::InputManager::createInputSystem( pl );
@@ -132,26 +130,42 @@ bool Server::go()
    mSceneMgr->setAmbientLight(Ogre::ColourValue(0.5, 0.5, 0.5));
    
    mPlayerNode->setPosition(0,20,0);
-   //mRoot->startRendering();
-
-   StartMoveEvents();
+   mRoot->startRendering();
    
    return true;
 }
 
+//int main(int argc,char  **argv)
+int main()
+{
+   Client test;
 
-Server::Server() : mRoot(0), mPluginsCfg(Ogre::StringUtil::BLANK) 
+   try{ test.go(); 
+   cout<<"Finished Running";}
+   catch(Ogre::Exception& e)
+   {
+      cout<<"An exeption has occured: "<<e.getFullDescription().c_str()<<endl;
+   }
+   catch(...)
+   {
+      cout<<"Something bad happened"<<endl;
+      exit(0);
+   }
+
+}
+
+Client::Client() : mRoot(0), mPluginsCfg(Ogre::StringUtil::BLANK) 
 {
 }
 
-Server::~Server()
+Client::~Client()
 {
    Ogre::WindowEventUtilities::removeWindowEventListener(mWindow, this);
    windowClosed(mWindow);
    delete mRoot;
 }
 
-bool Server::movePlayer(Ogre::Real time)
+bool Client::movePlayer(Ogre::Real time)
 {
 
    Ogre::Vector3 moveVec(0,0,0);
@@ -200,7 +214,7 @@ bool Server::movePlayer(Ogre::Real time)
    return true;
 }
   
-void Server::updateStats(void)
+void Client::updateStats(void)
 {
    static Ogre::String currFps = "Current FPS: ";
    static Ogre::String avgFps = "Average FPS: ";
@@ -234,7 +248,7 @@ void Server::updateStats(void)
    catch(...) { /* ignore */ }
 }
 
-bool Server::frameRenderingQueued(const Ogre::FrameEvent& evt)
+bool Client::frameRenderingQueued(const Ogre::FrameEvent& evt)
 {
    Ogre::Real time = evt.timeSinceLastFrame;
 
@@ -248,7 +262,7 @@ bool Server::frameRenderingQueued(const Ogre::FrameEvent& evt)
    return true;
 }
 
-bool Server::frameStarted(const Ogre::FrameEvent &evt)
+bool Client::frameStarted(const Ogre::FrameEvent &evt)
 {
 
    if (mKeyboard->isKeyDown(OIS::KC_D))
@@ -283,7 +297,7 @@ bool Server::frameStarted(const Ogre::FrameEvent &evt)
    return true;
 }
 
-void Server::windowResized(Ogre::RenderWindow* rw)
+void Client::windowResized(Ogre::RenderWindow* rw)
 {
     unsigned int width, height, depth;
     int left, top;
@@ -296,7 +310,7 @@ void Server::windowResized(Ogre::RenderWindow* rw)
 }
  
 //Unattach OIS before window shutdown (very important under Linux)
-void Server::windowClosed(Ogre::RenderWindow* rw)
+void Client::windowClosed(Ogre::RenderWindow* rw)
 {
     //Only close for window that created OIS (the main window in these demos)
     if( rw == mWindow )
@@ -312,7 +326,7 @@ void Server::windowClosed(Ogre::RenderWindow* rw)
     }
 }
 
-void Server::loadPhx()
+void Client::loadPhx()
 {
    mBroadphase = new btAxisSweep3(btVector3(-10000,-10000,-10000), btVector3(10000,10000,10000), 1024);
    mCollisionConfig = new btDefaultCollisionConfiguration();
@@ -325,49 +339,87 @@ void Server::loadPhx()
    dbgdraw = new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), mWorld);
    mWorld->setDebugDrawer(dbgdraw);
 }
+/*
+   Ogre::SceneNode *mGroundNode = mSceneMgr->getSceneNode("Plane");
+   Ogre::Entity *mGroundEnt = mSceneMgr->getEntity("Plane");
 
-void Server::StartMoveEvents()
-{
-    //call stuff that only runs once
-
-    boost::thread moveevents(&Server::MoveEvents,this);
-}
-
-void Server::MoveEvents()
-{
-    boost::posix_time::ptime time;
-    
-    for (;;)
-    {
-        time = boost::posix_time::microsec_clock::universal_time() + boost::posix_time::milliseconds(100); //minimum time between movements
-
-        //call other functions here
-        //see if keys are pressed by checking the KeyPressed array
-        MoveFunction();
-	 
-        boost::this_thread::sleep(time);
-    }
-}
-
-void Server::MoveFunction()
-{
-   static boost::posix_time::ptime time;
-
-   if (time.is_special())
-   {
-      time = boost::posix_time::microsec_clock::universal_time();
-   }
-
-   //if (mKeyboard->isKeyDown(OIS::KC_T))
-   {
-      mStore["Box"].body->activate();
-      mStore["Box"].body->applyCentralForce(btVector3(0,2500,1000));
-   }
-
-   if (mKeyboard->isKeyDown(OIS::KC_B))
-      cout<<mCamera->getRealPosition().x<<' '<<mCamera->getRealPosition().z<<endl;
+   Ogre::SceneNode *mBoxNode = mSceneMgr->getSceneNode("Cube");
+   Ogre::Entity *mBoxEnt = mSceneMgr->getEntity("Cube");
    
-   mWorld->stepSimulation((boost::posix_time::microsec_clock::universal_time() - time).total_microseconds()/1000000.0, 10);
-      
-   time = boost::posix_time::microsec_clock::universal_time();
+   //Create shape.
+   BtOgre::StaticMeshToShapeConverter converter(mBoxEnt);
+   mBoxShape = converter.createBox();
+
+   //Calculate inertia.
+   btScalar mass = 5;
+   btVector3 inertia;
+   mBoxShape->calculateLocalInertia(mass, inertia);
+
+   //Create BtOgre MotionState (connects Ogre and Bullet).
+   BtOgre::RigidBodyState *mBoxState = new BtOgre::RigidBodyState(mBoxNode);
+
+   //Create the Body.
+   btRigidBody::btRigidBodyConstructionInfo mBoxRigidInfo(mass, mBoxState, mBoxShape, inertia);
+   mBoxRigidInfo.m_friction = 1;
+
+   mBoxBody = new btRigidBody(mBoxRigidInfo);
+   mWorld->addRigidBody(mBoxBody);
+
+
+   //Create the ground shape.
+   BtOgre::StaticMeshToShapeConverter converter2(mGroundEnt);
+   mGroundShape = converter2.createTrimesh();
+
+   //Calculate inertia.
+   mass = 0;
+   inertia = btVector3(0,0,0);
+   mGroundShape->calculateLocalInertia(mass, inertia);
+
+   //Create MotionState (no need for BtOgre here, you can use it if you want to though).
+   BtOgre::RigidBodyState *mGroundState = new BtOgre::RigidBodyState(mGroundNode);//btTransform(btQuaternion(0,0,0,1),btVector3(0,0,0)));
+
+   //Create the Body.
+   btRigidBody::btRigidBodyConstructionInfo mGroundRigidInfo(mass, mGroundState, mGroundShape, inertia);
+   mGroundRigidInfo.m_friction = 1;
+
+   mGroundBody = new btRigidBody(mGroundRigidInfo);
+   mWorld->addRigidBody(mGroundBody); 
+   
+   //addCylinder("Cylinder.004",mCyl1Shape,mCyl1Body,1.9,-1.5,.5);
+   //addCylinder("Cylinder",mCyl2Shape,mCyl2Body,1.9,1.5,.5);
+   //addCylinder("Cylinder.006",mCyl3Shape,mCyl3Body,-1.9,-1.5,-.5);
+   //addCylinder("Cylinder.007",mCyl4Shape,mCyl4Body,-1.9,1.5,-.5);
 }
+*/
+/*
+void Client::addCylinder(const char* name,btCollisionShape *mCylShape,btRigidBody *mCylBody,float bodyx, float bodyz,float wheelx)
+{
+   Ogre::SceneNode *mCylNode = mSceneMgr->getSceneNode(name);
+   Ogre::Entity *mCylEnt = mSceneMgr->getEntity(name);
+   
+   //Create shape.
+   BtOgre::StaticMeshToShapeConverter converter3(mCylEnt);
+   mCylShape = converter3.createConvex();
+
+   //Calculate inertia.
+   btScalar mass = 1;
+   btVector3 inertia;
+   mCylShape->calculateLocalInertia(mass, inertia);
+
+   //Create BtOgre MotionState (connects Ogre and Bullet).
+   BtOgre::RigidBodyState *mCylState = new BtOgre::RigidBodyState(mCylNode);
+
+   //Create the Body.
+   btRigidBody::btRigidBodyConstructionInfo mCylRigidInfo(mass, mCylState, mCylShape, inertia);
+   mCylRigidInfo.m_friction = 1;
+
+   mCylBody = new btRigidBody(mCylRigidInfo);
+   mCylBody->setActivationState(DISABLE_DEACTIVATION);
+   mWorld->addRigidBody(mCylBody);
+
+   btVector3 axisA(0,1,0), axisB(0,0,0);
+   btHingeConstraint *Constraint = new btHingeConstraint(*mCylBody,*mBoxBody,btVector3(0,wheelx,0),btVector3(bodyx,-.35,bodyz),axisA,axisB);
+   mWorld->addConstraint(Constraint,true);
+   //mCylBody->setAngularVelocity(axisB);
+}
+*/
