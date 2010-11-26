@@ -129,14 +129,30 @@ void Server::serverHandler(const boost::system::error_code& error, std::size_t /
 
             newObjectPacket->objectData[l].position = node->getPosition(); 
             newObjectPacket->objectData[l].orientation = node->getOrientation(); 
+            newObjectPacket->objectData[l].scale = node->getScale(); 
             
             newObjectPacket->objectData[l].linearVelocity = body->getLinearVelocity();
             newObjectPacket->objectData[l].angularVelocity = body->getAngularVelocity();
+            
+            newObjectPacket->objectData[l].mass = temp.mass;
+            newObjectPacket->objectData[l].friction = temp.friction;
+            newObjectPacket->objectData[l].type = temp.type;
          }
          
          cout<<"Finially sending the stupid thing over, it has a size of "<<(sizeof(t_objectPacket) + objectPacket.numOfObjects * sizeof(t_objectData))<<endl<<endl;
          sock->send_to(boost::asio::buffer(newObjectPacket,sizeof(t_objectPacket) + objectPacket.numOfObjects * sizeof(t_objectData)),*end);
       }
+         break;
+
+      case 5:
+      {
+         cout<<"Someone from "<<end->address().to_string()<<" with id "<<table.right.find(*end)->second<<" pressed a key"<<endl;
+
+         t_keyPacket keyPacket(*reinterpret_cast<t_keyPacket *>(ReceiveBuffer));
+
+         cout<<"He has done "<<keyPacket.keyReleased<<" with the key "<<keyPacket.keyCode<<endl<<endl;
+      }
+         break;
 
       default:
          cout<<"Who knows what packet I got!!"<<endl;

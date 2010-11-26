@@ -358,6 +358,7 @@ void Server::MoveFunction()
       time = boost::posix_time::microsec_clock::universal_time();
    }
 
+   if(0)
    //if (mKeyboard->isKeyDown(OIS::KC_T))
    {
       mStore["Box"].body->activate();

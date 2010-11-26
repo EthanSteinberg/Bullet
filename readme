@@ -1,0 +1,8 @@
+INPUT
+Have input from client do something.
+Have a fallback incase input packet lost.
+Buffer input on server side.
+
+MULTIPLAYER
+Make players have a multiplayer model.
+Send update packets on stuff that moved.

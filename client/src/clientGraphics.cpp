@@ -94,15 +94,17 @@ bool Client::go()
    mWindow->getCustomAttribute("WINDOW", &windowHnd);
    windowHndStr << windowHnd;
    pl.insert(std::make_pair(std::string("WINDOW"), windowHndStr.str()));
-   //pl.insert(std::make_pair(std::string("x11_mouse_grab"), "false"));
+   pl.insert(std::make_pair(std::string("x11_mouse_grab"), "false"));
    //pl.insert(std::make_pair(std::string("x11_mouse_hide"), "false"));
    pl.insert(std::make_pair(std::string("x11_keyboard_grab"), "false"));
      
    mInputManager = OIS::InputManager::createInputSystem( pl );
    
-   mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject( OIS::OISKeyboard, false ));
+   mKeyboard = static_cast<OIS::Keyboard*>(mInputManager->createInputObject( OIS::OISKeyboard, true ));
    mMouse = static_cast<OIS::Mouse*>(mInputManager->createInputObject( OIS::OISMouse, false ));
    windowResized(mWindow);
+
+   mKeyboard->setEventCallback(this);
 
    //Add this class as a listener
    Ogre::WindowEventUtilities::addWindowEventListener(mWindow, this);
@@ -118,13 +120,17 @@ bool Client::go()
    mDebugOverlay->show();
    
    //Load scene
-   DotSceneLoader loader;
-   loader.parseDotScene("lol.scene","General", mSceneMgr,&mMeshes);
+   //DotSceneLoader loader;
+   //loader.parseDotScene("lol.scene","General", mSceneMgr,&mMeshes);
    
    //Activate physics
    loadPhx(); 
-   BulletXML test("lol.xml",mWorld,mSceneMgr,&mCopyData,&mMeshes,&mStore);
-   test.parse();
+   //BulletXML test("lol.xml",mWorld,mSceneMgr,&mCopyData,&mMeshes,&mStore);
+   //test.parse();
+
+   start("127.0.0.1");
+
+   parseObjectData();
 
    //Need to see stuff
    mSceneMgr->setAmbientLight(Ogre::ColourValue(0.5, 0.5, 0.5));
@@ -133,25 +139,6 @@ bool Client::go()
    mRoot->startRendering();
    
    return true;
-}
-
-//int main(int argc,char  **argv)
-int main()
-{
-   Client test;
-
-   try{ test.go(); 
-   cout<<"Finished Running";}
-   catch(Ogre::Exception& e)
-   {
-      cout<<"An exeption has occured: "<<e.getFullDescription().c_str()<<endl;
-   }
-   catch(...)
-   {
-      cout<<"Something bad happened"<<endl;
-      exit(0);
-   }
-
 }
 
 Client::Client() : mRoot(0), mPluginsCfg(Ogre::StringUtil::BLANK) 
@@ -167,7 +154,6 @@ Client::~Client()
 
 bool Client::movePlayer(Ogre::Real time)
 {
-
    Ogre::Vector3 moveVec(0,0,0);
 
    mKeyboard->capture();
@@ -339,6 +325,59 @@ void Client::loadPhx()
    dbgdraw = new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), mWorld);
    mWorld->setDebugDrawer(dbgdraw);
 }
+
+void Client::parseObjectData(void)
+{
+   for (auto iter = mObjectData.begin();iter != mObjectData.end();++iter)
+   {
+      parseObject(iter->second);
+   }
+}
+         
+
+void Client::parseObject(const t_objectData &ObjectData)
+{
+   t_Store temp;
+
+   temp.entity = mSceneMgr->createEntity(ObjectData.entName, ObjectData.meshName);
+   temp.node = mSceneMgr->getRootSceneNode()->createChildSceneNode(ObjectData.sceneName,ObjectData.position,ObjectData.orientation); 
+
+   temp.node->attachObject(temp.entity);
+
+   temp.node->setScale(ObjectData.scale);
+
+   //Create shape.
+   BtOgre::StaticMeshToShapeConverter converter(temp.entity);
+   switch (ObjectData.type)
+   {
+      case 0:
+         temp.shape = converter.createBox();
+         break;
+
+      case 1:
+         temp.shape = converter.createTrimesh();
+         break;
+   }
+
+   //Calculate inertia.
+   btScalar mass = ObjectData.mass;
+   btVector3 inertia;
+   temp.shape->calculateLocalInertia(mass, inertia);
+
+   //Create BtOgre MotionState (connects Ogre and Bullet).
+   BtOgre::RigidBodyState *mState = new BtOgre::RigidBodyState(temp.node);
+
+   //Create the Body.
+   btRigidBody::btRigidBodyConstructionInfo mRigidInfo(mass, mState, temp.shape, inertia);
+   mRigidInfo.m_friction = ObjectData.friction;
+
+   temp.body = new btRigidBody(mRigidInfo);
+   mWorld->addRigidBody(temp.body);
+
+   mStore[ObjectData.name] = temp;
+}
+   
+
 /*
    Ogre::SceneNode *mGroundNode = mSceneMgr->getSceneNode("Plane");
    Ogre::Entity *mGroundEnt = mSceneMgr->getEntity("Plane");

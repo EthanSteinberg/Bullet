@@ -17,6 +17,8 @@ set(HDRS
  
 set(SRCS
       src/clientGraphics.cpp
+      src/clientNetwork.cpp
+      src/main.cpp
 )
 
 add_executable(OgreApp ${HDRS} ${SRCS})

@@ -71,7 +71,7 @@ struct myVector3
       z = vec3.z/RANGE * SHORT_MAX;
    }
 
-   operator Ogre::Vector3()
+   operator Ogre::Vector3() const
    {
       Ogre::Vector3 vec3;
 
@@ -89,7 +89,7 @@ struct myVector3
       z = vec3.z()/RANGE * SHORT_MAX;
    }
 
-   operator btVector3()
+   operator btVector3() const
    {
       btVector3 vec3;
 
@@ -110,6 +110,7 @@ struct t_objectData
    char meshName[20];
 
    myVector3 position;
+   myVector3 scale;
 
    myVector3 linearVelocity;
    myVector3 angularVelocity;
@@ -125,6 +126,7 @@ struct t_objectData
 };
 
 //NEED TO SET TYPE YOURSELF
+//Type = 4
 struct t_objectPacket : public t_Packet 
 {
    int64_t numOfObjects;
@@ -132,5 +134,19 @@ struct t_objectPacket : public t_Packet
    uint16_t numbers[4];
    
    t_objectData objectData[];
+};
+
+
+struct t_keyPacket : public t_Packet
+{
+   // 1 for pressed, 0 for released
+   bool keyReleased;
+
+   uint16_t keyCode;
+   
+   t_keyPacket()
+   {
+      type = 5;
+   }
 };
 #endif

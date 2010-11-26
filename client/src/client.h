@@ -1,24 +1,24 @@
 #include <OGRE/Ogre.h>
 #include <OIS/OIS.h>
 #include "../utils/BtOgrePG.h"
+#include "../network/network.h"
 #include "../utils/BtOgreGP.h"
 #include "../utils/BtOgreExtras.h"
 #include "../utils/BulletXML.h"
 #include <map>
+#include <set>
 #include <string>
 #include <cstdint>
+#include <boost/asio.hpp>
 
-class Client : public Ogre::WindowEventListener,  public Ogre::FrameListener
+
+class Client : public Ogre::WindowEventListener,  public Ogre::FrameListener, public OIS::KeyListener
 {
 public:
    Client();
    ~Client();
    bool go();
-
-   void updateStats();
-   bool movePlayer(Ogre::Real time);
-   void loadPhx();
-   void addCylinder(const char* name,btCollisionShape *mClyShape,btRigidBody *mClyBody,float x, float z,float wheelx);
+   void start(std::string);
 
 protected:
    virtual void windowResized(Ogre::RenderWindow* rw);
@@ -26,7 +26,28 @@ protected:
    virtual bool frameRenderingQueued(const Ogre::FrameEvent& evt);
    virtual bool frameStarted(const Ogre::FrameEvent& evt);
 
-private:
+   virtual bool keyPressed( const OIS::KeyEvent &arg);
+   virtual bool keyReleased( const OIS::KeyEvent &arg);  
+
+private: 
+   void timeout(const boost::system::error_code &error, boost::asio::deadline_timer &timer, boost::asio::ip::udp::socket *sock, void *packet,std::size_t size);
+  
+   void handler(const boost::system::error_code &error, std::size_t bytes_transferred);
+   //void pingtimeout(const boost::system::error_code &error,boost::asio::deadline_timer &timer, udp::socket &sock,t_pingPacket &pingPacket);
+   //void connecttimeout(const boost::system::error_code &error,boost::asio::deadline_timer &timer, udp::socket &sock,t_connectPacket &connectPacket);
+
+   boost::asio::ip::udp::socket *sock;
+   int recieved;
+   uint8_t ReceiveBuffer[512];
+   std::set<uint16_t> objectsLeft;
+ 
+
+   void updateStats();
+   bool movePlayer(Ogre::Real time);
+   void loadPhx();
+   void parseObject(const t_objectData &ObjectData);
+   void parseObjectData();
+
    Ogre::Root *mRoot;
    Ogre::String mPluginsCfg;
    Ogre::String mResourcesCfg;
@@ -72,7 +93,7 @@ private:
    std::map<std::string/*entity name*/, std::string/*meshlocation*/> mMeshes;  
 
    std::map<std::string, t_Store> mStore;
-   std::map<uint16_t, t_CopyData> mCopyData;
+   std::map<uint16_t, t_objectData> mObjectData;
 };
 
 class RayCall : public btCollisionWorld::RayResultCallback
