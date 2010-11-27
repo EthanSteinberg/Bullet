@@ -7,14 +7,16 @@
 #include "../utils/BtOgreGP.h"
 #include "../utils/BtOgreExtras.h"
 #include "../utils/BulletXML.h"
+
 #include <map>
 #include <string>
+#include <queue>
 
 #include "../network/network.h"
 #include <boost/bimap.hpp>
 #include <boost/asio.hpp>
 
-typedef boost::bimap<boost::bimaps::set_of<int>, boost::bimaps::set_of<boost::asio::ip::udp::endpoint> > bm;
+typedef boost::bimap<boost::bimaps::set_of<int>, boost::bimaps::set_of<const boost::asio::ip::udp::endpoint *> > bm;
 
 class Server : public Ogre::WindowEventListener,  public Ogre::FrameListener
 {
@@ -29,8 +31,7 @@ public:
    bool movePlayer(Ogre::Real time);
    void loadPhx();
 
-   void sendUpdate(std::string,btVector3,btQuaternion)
-   {}
+   void sendUpdate(const std::string &name,const btVector3 &pos,const btQuaternion &orient);
 
 protected:
    virtual void windowResized(Ogre::RenderWindow* rw);
@@ -92,6 +93,8 @@ private:
    
    std::map<uint16_t, t_CopyData> mCopyData;
    std::map<std::string, t_Store> mStore;
+
+   std::queue<std::pair<t_updatePacket,const boost::asio::ip::udp::endpoint *> > mUpdateQueue;
 };
 
 

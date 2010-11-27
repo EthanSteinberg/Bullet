@@ -5,10 +5,13 @@
 #include "../utils/BtOgreGP.h"
 #include "../utils/BtOgreExtras.h"
 #include "../utils/BulletXML.h"
+
 #include <map>
+#include <queue>
 #include <set>
 #include <string>
 #include <cstdint>
+
 #include <boost/asio.hpp>
 
 
@@ -19,6 +22,7 @@ public:
    ~Client();
    bool go();
    void start(std::string);
+   void startGame();
 
 protected:
    virtual void windowResized(Ogre::RenderWindow* rw);
@@ -33,10 +37,14 @@ private:
    void timeout(const boost::system::error_code &error, boost::asio::deadline_timer &timer, boost::asio::ip::udp::socket *sock, void *packet,std::size_t size);
   
    void handler(const boost::system::error_code &error, std::size_t bytes_transferred);
+   void gameHandler(const boost::system::error_code &error, std::size_t bytes_transferred);
    //void pingtimeout(const boost::system::error_code &error,boost::asio::deadline_timer &timer, udp::socket &sock,t_pingPacket &pingPacket);
    //void connecttimeout(const boost::system::error_code &error,boost::asio::deadline_timer &timer, udp::socket &sock,t_connectPacket &connectPacket);
 
    boost::asio::ip::udp::socket *sock;
+   boost::asio::io_service ioserv;
+   boost::asio::ip::udp::endpoint *end;
+   
    int recieved;
    uint8_t ReceiveBuffer[512];
    std::set<uint16_t> objectsLeft;
@@ -94,6 +102,8 @@ private:
 
    std::map<std::string, t_Store> mStore;
    std::map<uint16_t, t_objectData> mObjectData;
+
+   std::queue<t_updatePacket> mUpdateQueue;
 };
 
 class RayCall : public btCollisionWorld::RayResultCallback

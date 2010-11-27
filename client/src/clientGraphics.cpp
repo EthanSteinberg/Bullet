@@ -131,6 +131,7 @@ bool Client::go()
    start("127.0.0.1");
 
    parseObjectData();
+   startGame();
 
    //Need to see stuff
    mSceneMgr->setAmbientLight(Ogre::ColourValue(0.5, 0.5, 0.5));
@@ -243,7 +244,17 @@ bool Client::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
    if (!movePlayer(time))
       return false;
-      
+   
+   while (!mUpdateQueue.empty())
+   {
+      t_updatePacket &temp = mUpdateQueue.front();
+
+      mStore[temp.name].node->setPosition((Ogre::Vector3) temp.position);
+      mStore[temp.name].node->setOrientation((Ogre::Quaternion) temp.orientation);
+
+      mUpdateQueue.pop();
+   }
+
    updateStats();
    return true;
 }

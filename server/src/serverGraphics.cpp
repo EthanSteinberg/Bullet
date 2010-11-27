@@ -6,6 +6,7 @@
 #include "../utils/BulletXML.h"
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <btBulletDynamicsCommon.h>
 
 #include <iostream>
 

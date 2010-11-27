@@ -21,17 +21,15 @@ using std::endl;
 
 void Client::start(std::string place)
 {
-
-   boost::asio::io_service ioserv;
    boost::asio::deadline_timer timer(ioserv);
 
    sock = new udp::socket(ioserv);
    udp::resolver reso(ioserv);
    udp::resolver::query que(udp::v4(),place,"");
-   udp::endpoint end(*reso.resolve(que));
-   end.port(1327);
+   end = new udp::endpoint(*reso.resolve(que));
+   end->port(1327);
    
-   sock->connect(end);
+   sock->connect(*end);
    
    {
       sock->async_receive(boost::asio::buffer(ReceiveBuffer,sizeof(ReceiveBuffer)),boost::bind(&Client::handler,this,_1,_2));
@@ -111,6 +109,39 @@ void Client::start(std::string place)
    }
 }
 
+void Client::startGame()
+{
+   cout<<"Is this fuction even called"<<endl;
+   sock->async_receive(boost::asio::buffer(ReceiveBuffer,sizeof(ReceiveBuffer)),boost::bind(&Client::gameHandler,this,_1,_2));
+}
+
+void Client::gameHandler(const boost::system::error_code& error, std::size_t /*bytes_transferred*/)
+{
+
+   cout<<"Is this handler even called"<<endl;
+
+   switch(reinterpret_cast<t_Packet *>(ReceiveBuffer)->type)
+   {
+      case 6:
+      {
+         cout<<"Got a objectUpdate packet"<<endl;
+         cout<<"Applying it"<<endl<<endl;
+         
+         t_updatePacket updatePacket(*reinterpret_cast<t_updatePacket *>(ReceiveBuffer));
+
+         mUpdateQueue.push(updatePacket);
+      }
+         break;
+
+      default:
+      {
+         cout<<"Who knows what packet I got!!!"<<endl<<endl;
+      }
+   }
+
+   sock->async_receive(boost::asio::buffer(ReceiveBuffer,sizeof(ReceiveBuffer)),boost::bind(&Client::gameHandler,this,_1,_2));
+}
+   
 void Client::handler(const boost::system::error_code& error, std::size_t /*bytes_transferred*/)
 {
    switch(reinterpret_cast<t_Packet *>(ReceiveBuffer)->type)
@@ -213,13 +244,22 @@ bool Client::keyPressed(const OIS::KeyEvent &arg)
    cout<<"A key was pressed"<<endl;
 
    t_eventPacket eventPacket;
-
-   eventPacket.eventCode = 1;
    
    if (arg.key == OIS::KC_T)
    {
       cout<<"He pressed t";
       eventPacket.eventCode = 0;
+   }
+
+   else if(arg.key == OIS::KC_ESCAPE)
+   {
+      cout<<"I quit";
+      eventPacket.eventCode = 2;
+   }
+
+   else
+   {
+      eventPacket.eventCode = 100;
    }
 
    sock->send(boost::asio::buffer(&eventPacket,sizeof(eventPacket)));
@@ -228,6 +268,17 @@ bool Client::keyPressed(const OIS::KeyEvent &arg)
 
 bool Client::keyReleased(const OIS::KeyEvent &arg)
 {
+   
+   t_eventPacket eventPacket;
+   eventPacket.eventCode = 100;
+   
+   if (arg.key == OIS::KC_T)
+   {
+      cout<<"He released t";
+      eventPacket.eventCode = 1;
+   }
+   
+   sock->send(boost::asio::buffer(&eventPacket,sizeof(eventPacket)));
    cout<<"A key was released"<<endl;
    return true;
 }

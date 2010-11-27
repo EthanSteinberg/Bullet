@@ -62,13 +62,13 @@ void Server::serverHandler(const boost::system::error_code& error, std::size_t /
          
          t_connectPacket connectPacket;
          
-         bm::right_map::const_iterator lol = table.right.find(*end);
+         bm::right_map::const_iterator lol = table.right.find(end);
          if (table.right.end() == lol)
          {
             cout<<"They are not already connected"<<endl;
 
             connectPacket.id = CurId;
-            table.insert(bm::value_type(CurId++,*end));
+            table.insert(bm::value_type(CurId++,end));
          }
 
          else
@@ -85,7 +85,7 @@ void Server::serverHandler(const boost::system::error_code& error, std::size_t /
       
       case 3:
       {
-         cout<<"Someone from "<<end->address().to_string()<<" with id "<<table.right.find(*end)->second<<" wants the world"<<endl;
+         cout<<"Someone from "<<end->address().to_string()<<" with id "<<table.right.find(end)->second<<" wants the world"<<endl;
 
          t_worldPacket worldPacket(*reinterpret_cast<t_worldPacket *>(ReceiveBuffer));
          worldPacket.numOfObjects = mCopyData.size();
@@ -97,7 +97,7 @@ void Server::serverHandler(const boost::system::error_code& error, std::size_t /
 
       case 4:
       {
-         cout<<"Someone from "<<end->address().to_string()<<" with id "<<table.right.find(*end)->second<<" wants some objects"<<endl;
+         cout<<"Someone from "<<end->address().to_string()<<" with id "<<table.right.find(end)->second<<" wants some objects"<<endl;
 
          t_objectPacket objectPacket(*reinterpret_cast<t_objectPacket *>(ReceiveBuffer));
          
@@ -146,7 +146,7 @@ void Server::serverHandler(const boost::system::error_code& error, std::size_t /
 
       case 5:
       {
-         cout<<"Someone from "<<end->address().to_string()<<" with id "<<table.right.find(*end)->second<<" pressed a key"<<endl;
+         cout<<"Someone from "<<end->address().to_string()<<" with id "<<table.right.find(end)->second<<" pressed a key"<<endl;
 
          t_eventPacket eventPacket(*reinterpret_cast<t_eventPacket *>(ReceiveBuffer));
 
@@ -156,10 +156,23 @@ void Server::serverHandler(const boost::system::error_code& error, std::size_t /
             boxPush = 1;
          }
          
-         else if (eventPacket.eventCode == 0)
+         else if (eventPacket.eventCode == 1)
          {
             cout<<"He has stopped pushing the box"<<endl;
             boxPush = 0;
+         }
+         
+         else if (eventPacket.eventCode == 2)
+         {
+            cout<<"He has quit, so removing him"<<endl;
+            table.right.erase(end);
+            cout<<"Outputting who is left"<<endl;
+            for(bm::const_iterator iter = table.begin();iter != table.end();++iter)
+            {  
+               cout<<iter->left<<' '<<*(iter->right)<<endl;   
+            }
+
+            cout<<endl<<endl;
          }
       }
          break;
@@ -169,4 +182,31 @@ void Server::serverHandler(const boost::system::error_code& error, std::size_t /
    }  
    
    sock->async_receive_from(boost::asio::buffer(ReceiveBuffer),*end,boost::bind(&Server::serverHandler,this,_1,_2));
+
+   while (!mUpdateQueue.empty())
+   {
+      auto temp = mUpdateQueue.front();
+
+      t_updatePacket &updatePacket = temp.first;
+      sock->send_to(boost::asio::buffer(&updatePacket,sizeof(updatePacket)),*temp.second);
+   
+      mUpdateQueue.pop();
+   }
 }
+   
+void Server::sendUpdate(const std::string &name,const btVector3 &pos,const btQuaternion &orient)
+{
+   for (bm::const_iterator iter = table.begin();iter != table.end();++iter)
+   {
+      t_updatePacket updatePacket;
+
+      strcpy(updatePacket.name,name.c_str());
+      updatePacket.position = pos;
+      updatePacket.orientation = orient;
+      
+      mUpdateQueue.push(std::pair<t_updatePacket, const udp::endpoint *>(updatePacket,iter->right));
+
+      cout<<"Sent an update packet"<<endl<<endl;
+   }
+}
+       

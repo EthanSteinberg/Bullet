@@ -90,4 +90,17 @@ struct t_eventPacket : public t_Packet
       type = 5;
    }
 };
+
+struct t_updatePacket : public t_Packet
+{
+   char name[20];
+
+   myVector3 position;
+   myQuaternion orientation;
+   
+   t_updatePacket()
+   {
+      type = 6;
+   }
+};
 #endif
