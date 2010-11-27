@@ -1,3 +1,5 @@
+#ifndef SERVER_H_INCLUDED
+#define SERVER_H_INCLUDED
 
 #include <OGRE/Ogre.h>
 #include <OIS/OIS.h>
@@ -26,7 +28,9 @@ public:
    void updateStats();
    bool movePlayer(Ogre::Real time);
    void loadPhx();
-   void addCylinder(const char* name,btCollisionShape *mClyShape,btRigidBody *mClyBody,float x, float z,float wheelx);
+
+   void sendUpdate(std::string,btVector3,btQuaternion)
+   {}
 
 protected:
    virtual void windowResized(Ogre::RenderWindow* rw);
@@ -39,7 +43,9 @@ private:
    void MoveEvents();
    void MoveFunction();
    void StartMoveEvents();
+   
 
+   bool boxPush;
    
    uint8_t ReceiveBuffer[512];
    int CurId; 
@@ -88,39 +94,58 @@ private:
    std::map<std::string, t_Store> mStore;
 };
 
-class RayCall : public btCollisionWorld::RayResultCallback
-   {
-   public:
-      RayCall(const btVector3&     rayFromWorld,const btVector3&   rayToWorld)
-      :m_rayFromWorld(rayFromWorld),
-      m_rayToWorld(rayToWorld)
-      {
-      }
 
-      btVector3 m_rayFromWorld;//used to calculate hitPointWorld from hitFraction
-      btVector3 m_rayToWorld;
+class myMotionState : public btMotionState 
+{
+    protected:
+        btTransform mTransform;
+        btTransform mCenterOfMassOffset;
 
-      btVector3 m_hitNormalWorld;
-      btVector3 m_hitPointWorld;
-         
-      virtual   btScalar        addSingleResult(btCollisionWorld::LocalRayResult& rayResult,bool normalInWorldSpace)
-      {
-         btAssert(rayResult.m_hitFraction <= m_closestHitFraction);
-         
-         m_closestHitFraction = rayResult.m_hitFraction;
+        Ogre::SceneNode *mNode;
+        std::string mName;
+        Server *mServer;
 
-         m_collisionObject = rayResult.m_collisionObject;
-         if (normalInWorldSpace)
-         {
-            m_hitNormalWorld = rayResult.m_hitNormalLocal;
-         } else
-         {
-            ///need to transform normal into worldspace
-            m_hitNormalWorld = m_collisionObject->getWorldTransform().getBasis()*rayResult.m_hitNormalLocal;
-         }
-         m_hitPointWorld.setInterpolate3(m_rayFromWorld,m_rayToWorld,rayResult.m_hitFraction);
-         
-         return 1.f;
-      }
-   };
+    public:
+        myMotionState(Ogre::SceneNode *node, const btTransform &transform, const btTransform &offset = btTransform::getIdentity())
+            : mTransform(transform),
+              mCenterOfMassOffset(offset),
+              mNode(node)
+        {
+        }
 
+        myMotionState(Ogre::SceneNode *node,const std::string &name,Server *server)
+            : mTransform(((node != NULL) ? BtOgre::Convert::toBullet(node->getOrientation()) : btQuaternion(0,0,0,1)), 
+                         ((node != NULL) ? BtOgre::Convert::toBullet(node->getPosition())    : btVector3(0,0,0))),
+              mCenterOfMassOffset(btTransform::getIdentity()),
+              mNode(node),
+              mName(name),
+              mServer(server)
+        {
+        }
+
+        virtual void getWorldTransform(btTransform &ret) const 
+        {
+            ret = mCenterOfMassOffset.inverse() * mTransform;
+        }
+
+        virtual void setWorldTransform(const btTransform &in) 
+        {
+            if (mNode == NULL)
+                return;
+
+            mTransform = in;
+            btTransform transform = in * mCenterOfMassOffset;
+
+            btQuaternion rot = transform.getRotation();
+            btVector3 pos = transform.getOrigin();
+            mNode->setOrientation(rot.w(), rot.x(), rot.y(), rot.z());
+            mNode->setPosition(pos.x(), pos.y(), pos.z());
+            mServer->sendUpdate(mName,pos,rot);
+        }
+
+        void setNode(Ogre::SceneNode *node) 
+        {
+            mNode = node;
+        }
+};
+#endif

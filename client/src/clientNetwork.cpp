@@ -169,7 +169,7 @@ void Client::handler(const boost::system::error_code& error, std::size_t /*bytes
          cout<<"The first object has a meshName of "<<objectPacket->objectData[0].meshName<<endl<<endl;
          
          cout<<"The first object has a position of "<<(Ogre::Vector3) objectPacket->objectData[0].position<<endl;
-         cout<<"The first object has a orientation of "<<objectPacket->objectData[0].orientation<<endl;
+         cout<<"The first object has a orientation of "<<(Ogre::Quaternion) objectPacket->objectData[0].orientation<<endl;
          cout<<"The first object has a scale of "<<(Ogre::Vector3) objectPacket->objectData[0].scale<<endl;
 
          cout<<"The first object has a linearVelocity of "<<(Ogre::Vector3) objectPacket->objectData[0].linearVelocity<<endl;
@@ -203,7 +203,7 @@ void Client::timeout(const boost::system::error_code &error, boost::asio::deadli
    {
       sock->send(boost::asio::buffer(packet,size));
 
-      timer.expires_from_now(boost::posix_time::seconds(1));
+      timer.expires_from_now(boost::posix_time::milliseconds(100));
       timer.async_wait(boost::bind(&Client::timeout,this,boost::asio::placeholders::error,boost::ref(timer),sock,packet,size));
    }
 }
@@ -211,23 +211,23 @@ void Client::timeout(const boost::system::error_code &error, boost::asio::deadli
 bool Client::keyPressed(const OIS::KeyEvent &arg)
 {
    cout<<"A key was pressed"<<endl;
-   t_keyPacket keyPacket;
 
-   keyPacket.keyReleased = 1;
-   keyPacket.keyCode = arg.key;
+   t_eventPacket eventPacket;
 
-   sock->send(boost::asio::buffer(&keyPacket,sizeof(keyPacket)));
+   eventPacket.eventCode = 1;
+   
+   if (arg.key == OIS::KC_T)
+   {
+      cout<<"He pressed t";
+      eventPacket.eventCode = 0;
+   }
+
+   sock->send(boost::asio::buffer(&eventPacket,sizeof(eventPacket)));
    return true;
 }
 
 bool Client::keyReleased(const OIS::KeyEvent &arg)
 {
    cout<<"A key was released"<<endl;
-   t_keyPacket keyPacket;
-
-   keyPacket.keyReleased = 0;
-   keyPacket.keyCode = arg.key;
-
-   sock->send(boost::asio::buffer(&keyPacket,sizeof(keyPacket)));
    return true;
 }

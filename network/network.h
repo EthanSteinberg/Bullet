@@ -3,8 +3,8 @@
 
 #include "boost/date_time/posix_time/posix_time.hpp"
 
-#include <OGRE/Ogre.h>
-#include <btBulletDynamicsCommon.h>
+#include "myquaternion.h"
+#include "myvector.h"
 
 #include <cstdint>
 
@@ -48,58 +48,6 @@ struct t_worldPacket : public t_Packet
    }
 };
 
-struct myVector3
-{
-   static const float SHORT_MAX = INT16_MAX;
-   static const float RANGE = 100;
-
-   int16_t x;
-   int16_t y;
-   int16_t z;
-
-   myVector3()
-   {
-      x = 0;
-      y = 0;
-      z = 0;
-   };
-
-   myVector3(const Ogre::Vector3 &vec3)
-   {
-      x = vec3.x/RANGE * SHORT_MAX;
-      y = vec3.y/RANGE * SHORT_MAX;
-      z = vec3.z/RANGE * SHORT_MAX;
-   }
-
-   operator Ogre::Vector3() const
-   {
-      Ogre::Vector3 vec3;
-
-      vec3.x = x/ SHORT_MAX * RANGE;
-      vec3.y = y/ SHORT_MAX * RANGE;
-      vec3.z = z/ SHORT_MAX * RANGE;
-
-      return vec3;
-   } 
-
-   myVector3(const btVector3 &vec3)
-   {
-      x = vec3.x()/RANGE * SHORT_MAX;
-      y = vec3.y()/RANGE * SHORT_MAX;
-      z = vec3.z()/RANGE * SHORT_MAX;
-   }
-
-   operator btVector3() const
-   {
-      btVector3 vec3;
-
-      vec3.setX(x/ SHORT_MAX * RANGE);
-      vec3.setY(y/ SHORT_MAX * RANGE);
-      vec3.setZ(z/ SHORT_MAX * RANGE);
-
-      return vec3;
-   } 
-};
 
 struct t_objectData
 {
@@ -110,15 +58,11 @@ struct t_objectData
    char meshName[20];
 
    myVector3 position;
+   myQuaternion orientation;
    myVector3 scale;
 
    myVector3 linearVelocity;
    myVector3 angularVelocity;
-   //Ogre::Vector3 position;
-   Ogre::Quaternion orientation;
-   
-   //btVector3 totalForce;
-   //btVector3 totalTorque;
 
    uint16_t mass;
    uint16_t friction;
@@ -137,14 +81,11 @@ struct t_objectPacket : public t_Packet
 };
 
 
-struct t_keyPacket : public t_Packet
+struct t_eventPacket : public t_Packet
 {
-   // 1 for pressed, 0 for released
-   bool keyReleased;
-
-   uint16_t keyCode;
+   uint16_t eventCode;
    
-   t_keyPacket()
+   t_eventPacket()
    {
       type = 5;
    }

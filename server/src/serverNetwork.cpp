@@ -148,9 +148,19 @@ void Server::serverHandler(const boost::system::error_code& error, std::size_t /
       {
          cout<<"Someone from "<<end->address().to_string()<<" with id "<<table.right.find(*end)->second<<" pressed a key"<<endl;
 
-         t_keyPacket keyPacket(*reinterpret_cast<t_keyPacket *>(ReceiveBuffer));
+         t_eventPacket eventPacket(*reinterpret_cast<t_eventPacket *>(ReceiveBuffer));
 
-         cout<<"He has done "<<keyPacket.keyReleased<<" with the key "<<keyPacket.keyCode<<endl<<endl;
+         if (eventPacket.eventCode == 0)
+         {
+            cout<<"He has pushed the box"<<endl;
+            boxPush = 1;
+         }
+         
+         else if (eventPacket.eventCode == 0)
+         {
+            cout<<"He has stopped pushing the box"<<endl;
+            boxPush = 0;
+         }
       }
          break;
 

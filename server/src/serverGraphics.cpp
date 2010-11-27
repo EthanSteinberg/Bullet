@@ -125,7 +125,7 @@ bool Server::go()
    
    //Activate physics
    loadPhx(); 
-   BulletXML test("lol.xml",mWorld,mSceneMgr,&mCopyData,&mMeshes,&mStore);
+   BulletXML test("lol.xml",mWorld,mSceneMgr,&mCopyData,&mMeshes,&mStore,this);
    test.parse();
 
    //Need to see stuff
@@ -140,7 +140,7 @@ bool Server::go()
 }
 
 
-Server::Server() : mRoot(0), mPluginsCfg(Ogre::StringUtil::BLANK) 
+Server::Server() : mRoot(0), mPluginsCfg(Ogre::StringUtil::BLANK), boxPush(0) 
 {
 }
 
@@ -251,6 +251,7 @@ bool Server::frameRenderingQueued(const Ogre::FrameEvent& evt)
 bool Server::frameStarted(const Ogre::FrameEvent &evt)
 {
 
+#if(0)
    if (mKeyboard->isKeyDown(OIS::KC_D))
    {
       Ogre::Vector3 Loc = mPlayerNode->getPosition();
@@ -265,6 +266,7 @@ bool Server::frameStarted(const Ogre::FrameEvent &evt)
       RayCall lol(from,to);
       mWorld->rayTest(from,to,lol);
    }
+#endif
    
    if (mKeyboard->isKeyDown(OIS::KC_T))
    {
@@ -278,8 +280,6 @@ bool Server::frameStarted(const Ogre::FrameEvent &evt)
    mWorld->stepSimulation(evt.timeSinceLastFrame, 10);
    mWorld->debugDrawWorld();
 
-   dbgdraw->setDebugMode(1);
-   dbgdraw->step();
    return true;
 }
 
@@ -321,9 +321,6 @@ void Server::loadPhx()
 
    mWorld = new btDiscreteDynamicsWorld(mDispatcher, mBroadphase, mSolver, mCollisionConfig);
    mWorld->setGravity(btVector3(0,-9.8,0));
-
-   dbgdraw = new BtOgre::DebugDrawer(mSceneMgr->getRootSceneNode(), mWorld);
-   mWorld->setDebugDrawer(dbgdraw);
 }
 
 void Server::StartMoveEvents()
@@ -358,11 +355,11 @@ void Server::MoveFunction()
       time = boost::posix_time::microsec_clock::universal_time();
    }
 
-   if(0)
-   //if (mKeyboard->isKeyDown(OIS::KC_T))
+   if(boxPush)
    {
+      boxPush = 0;
       mStore["Box"].body->activate();
-      mStore["Box"].body->applyCentralForce(btVector3(0,2500,1000));
+      mStore["Box"].body->applyCentralForce(btVector3(0,250,100));
    }
 
    if (mKeyboard->isKeyDown(OIS::KC_B))

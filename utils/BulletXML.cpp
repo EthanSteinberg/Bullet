@@ -3,6 +3,8 @@
 #include "../utils/BtOgreGP.h"
 #include "../utils/BtOgrePG.h"
 
+#include "server/src/server.h"
+
 #include <boost/lexical_cast.hpp>
 
 #include <iostream>
@@ -13,7 +15,8 @@
 
 using namespace rapidxml;
 
-BulletXML::BulletXML(const char *name, btDiscreteDynamicsWorld *World,Ogre::SceneManager *SceneMgr, std::map<uint16_t, t_CopyData> *CopyData,std::map<std::string, std::string> *Meshes, std::map<std::string, t_Store> *Store) : file(name), mWorld(World), mSceneMgr(SceneMgr), mCopyData(CopyData), mMeshes(Meshes) ,mStore(Store), objectNum(0)
+BulletXML::BulletXML(const char *name, btDiscreteDynamicsWorld *World,Ogre::SceneManager *SceneMgr, std::map<uint16_t, t_CopyData> *CopyData,std::map<std::string, std::string> *Meshes, std::map<std::string, t_Store> *Store, Server *server) 
+   : file(name), mWorld(World), mSceneMgr(SceneMgr), mCopyData(CopyData), mMeshes(Meshes) ,mStore(Store), objectNum(0), mServer(server)
 {
 }
 
@@ -122,7 +125,7 @@ void BulletXML::loadObject()
    temp.shape->calculateLocalInertia(mass, inertia);
 
    //Create BtOgre MotionState (connects Ogre and Bullet).
-   BtOgre::RigidBodyState *mState = new BtOgre::RigidBodyState(temp.node);
+   auto *mState = new myMotionState(temp.node,BulletObject.name,mServer);
 
    //Create the Body.
    btRigidBody::btRigidBodyConstructionInfo mRigidInfo(BulletObject.mass, mState, temp.shape, inertia);

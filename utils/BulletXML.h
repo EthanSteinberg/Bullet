@@ -1,6 +1,9 @@
 #ifndef BULLETXML_H_INCLUDED
 #define BULLETXML_H_INCLUDED
 
+//Foreward declare so I can pass to the motion machine
+class Server;
+
 #include "../utils/rapidxml.hpp"
 #include <btBulletDynamicsCommon.h>
 #include <OGRE/Ogre.h>
@@ -33,7 +36,7 @@ struct t_Store
 class BulletXML
 {
 public:
-   BulletXML(const char *name, btDiscreteDynamicsWorld *World,Ogre::SceneManager *SceneMgr, std::map<uint16_t, t_CopyData> *CopyData,std::map<std::string, std::string> *Meshes, std::map<std::string, t_Store> *Store);
+   BulletXML(const char *name, btDiscreteDynamicsWorld *World,Ogre::SceneManager *SceneMgr, std::map<uint16_t, t_CopyData> *CopyData,std::map<std::string, std::string> *Meshes, std::map<std::string, t_Store> *Store, Server *server);
    void parse();
 
 private:
@@ -61,6 +64,7 @@ private:
    std::map<uint16_t, t_CopyData> *mCopyData;
    std::map<std::string, std::string> *mMeshes;
    std::map<std::string, t_Store> *mStore;
+   Server *mServer;
    
    uint16_t objectNum; 
 };

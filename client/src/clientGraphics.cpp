@@ -250,26 +250,24 @@ bool Client::frameRenderingQueued(const Ogre::FrameEvent& evt)
 
 bool Client::frameStarted(const Ogre::FrameEvent &evt)
 {
+static int lol = 0;
 
    if (mKeyboard->isKeyDown(OIS::KC_D))
    {
       Ogre::Vector3 Loc = mPlayerNode->getPosition();
       btVector3 from = BtOgre::Convert::toBullet(mPlayerNode->convertLocalToWorldPosition(Ogre::Vector3(0,0,0)));
       btVector3 to = BtOgre::Convert::toBullet(mPlayerNode->convertLocalToWorldPosition(moveQuat * cameraQuat * Ogre::Quaternion(Ogre::Degree(-90), Ogre::Vector3::UNIT_Y)* Ogre::Vector3(-100,0,0)));
-      //to.normalize();
-     
       mConeNode->setPosition(mPlayerNode->convertLocalToWorldPosition(moveQuat * cameraQuat * Ogre::Quaternion(Ogre::Degree(-90), Ogre::Vector3::UNIT_Y)* Ogre::Vector3(-100,0,0)));
-      
-       
 
       RayCall lol(from,to);
       mWorld->rayTest(from,to,lol);
    }
    
-   if (mKeyboard->isKeyDown(OIS::KC_T))
+   if (lol<5 && mKeyboard->isKeyDown(OIS::KC_T))
    {
+      lol++;
       mStore["Box"].body->activate();
-      mStore["Box"].body->applyCentralImpulse(btVector3(0,.25,.1));
+      mStore["Box"].body->applyCentralForce(btVector3(0,2500,1000));
    }
 
    if (mKeyboard->isKeyDown(OIS::KC_B))

@@ -24,6 +24,6 @@ target_link_libraries(OgreSer ${OGRE_LIBRARIES} ${OIS_LIBRARIES} ${BULLET_LIBRAR
 
 
 
-#add_executable(OgreCli src/client.cpp)
+#add_executable(OgreCli src/test.cpp)
 #set_target_properties(OgreCli PROPERTIES DEBUG_POSTFIX _d)
 #target_link_libraries(OgreCli ${BULLET_LIBRARIES} ${OGRE_LIBRARIES} ${Boost_LIBRARIES} stdc++)
